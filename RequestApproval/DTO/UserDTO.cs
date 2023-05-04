@@ -8,6 +8,7 @@ namespace RequestApproval.DTO
 {
     public class UserDTO
     {
+        
         public int Id { get; set; }
 
         [Required(ErrorMessage = "This field is required!")]
@@ -45,4 +46,9 @@ namespace RequestApproval.DTO
         [Display(Name ="Status")]
         public Boolean IsActive { get; set; }
     }
+    /*public enum IsActive
+    {
+        Active,
+        InActive
+    }*/
 }

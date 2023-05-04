@@ -122,5 +122,74 @@ namespace RequestApproval.Controllers
             Session.Abandon();
             return RedirectToAction("Login");
         }
+
+        [HttpGet]
+        public ActionResult Edit(int id)
+        {
+            UserDetail obj = db.UserDetails.FirstOrDefault(x =>x.Id ==id);
+            Credential credential = db.Credentials.FirstOrDefault(x => x.UId == id);
+            UserDTO user = new UserDTO();
+            user.FirstName = obj.FirstName;
+            user.LastName = obj.LastName;
+            user.Phone = obj.Phone;
+            user.Address = obj.Address;
+            user.RoleId = (int)obj.RoleId;
+            user.Id = id;
+            user.Email = credential.Email;
+            user.Password = credential.Password;
+            user.IsActive = (bool)credential.IsActive;
+
+            return View(user);
+        }
+
+        [HttpPost]
+        public ActionResult Edit(UserDTO user,int id)
+        {
+            try
+            {
+                UserDetail userDetail = db.UserDetails.Find(id);
+                Credential credential = db.Credentials.FirstOrDefault(x =>x.UId == id);
+
+                userDetail.FirstName = user.FirstName;
+                userDetail.LastName = user.LastName;
+                userDetail.Address = user.Address;
+                userDetail.Phone = user.Phone;
+                userDetail.RoleId = user.RoleId;
+
+                credential.Email = user.Email;
+                credential.Password = user.Password;
+                credential.IsActive = user.IsActive;
+
+                db.SaveChanges();
+                return RedirectToAction("Index");
+
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        [HttpGet]
+        public ActionResult Delete(int id)
+        {
+            try
+            {
+                db.UserDetails.Remove(db.UserDetails.Find(id));
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            catch { return View(); }
+        }
+
+        [HttpPost]
+        public ActionResult Delete(int id, FormCollection form)
+        {
+            try
+            {
+                return RedirectToAction("Index");
+            }
+            catch { return View(); }
+        }
     }
 }

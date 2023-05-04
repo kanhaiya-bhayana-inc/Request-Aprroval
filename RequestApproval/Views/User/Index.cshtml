@@ -7,7 +7,11 @@
 <h2>Users</h2>
 
 <p>
-    <a href="@Url.Action("SignUp","User")" class="btn btn-primary">Add User</a>
+    @if (Session["Permission"] != null)
+            {
+
+                <a href="@Url.Action("SignUp","User")" class="btn btn-primary">Add User</a>
+            }
 </p>
 <table class="table">
     <tr>
@@ -82,7 +86,7 @@
         </td>
         <td>
             <a href="@Url.Action("Edit", "User", new { @id = item.Id })" class="btn btn-primary">Edit</a>
-            <a href="@Url.Action("Delete", "User", new { @id = item.Id })" class="btn btn-danger" onclick="return confirm('Are you sure want to delete @item.FirstName + @item.LastName?');">Delete</a>
+            <a href="@Url.Action("Delete", "User", new { @id = item.Id })" class="btn btn-danger" onclick="return confirm('Are you sure want to delete @item.FirstName @item.LastName?');">Delete</a>
         </td>
         }
     </tr>
