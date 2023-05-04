@@ -41,6 +41,8 @@ namespace RequestApproval.DTO
         [DataType(DataType.Password)]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#!%*?&])[A-Za-z\d@$#!%*?&]{8,16}$", ErrorMessage = "Password must contain minimum 8 and maximum 16 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character!")]
         public string Password { get; set; }
+
+        [Display(Name ="Status")]
         public Boolean IsActive { get; set; }
     }
 }

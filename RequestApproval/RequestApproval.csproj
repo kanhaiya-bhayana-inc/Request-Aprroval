@@ -130,6 +130,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\UserController.cs" />
+    <Compile Include="DTO\LoginDTO.cs" />
     <Compile Include="DTO\UserDTO.cs" />
     <Compile Include="Enums\ValidationMessages.cs" />
     <Compile Include="Global.asax.cs">
@@ -232,6 +233,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\User\Index.cshtml" />
     <Content Include="Views\User\SignUp.cshtml" />
+    <Content Include="Views\User\Login.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

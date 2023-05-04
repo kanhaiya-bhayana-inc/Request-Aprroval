@@ -86,5 +86,41 @@ namespace RequestApproval.Controllers
             }
             
         }
+
+        [HttpGet]
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(LoginDTO request)
+        {
+            string password = Helper.Encrypt(request.Password);
+            var checkLogin = db.Credentials.FirstOrDefault(x => x.Email ==request.Email && x.Password ==password);            if (checkLogin != null)
+            {
+                if (checkLogin.IsActive ==  true)
+                {
+                    Session["Permission"] = "Access-granted";
+                }
+                UserDetail user = db.UserDetails.FirstOrDefault(x => x.Id == checkLogin.UId);
+                string FullName = user.FirstName + " " + user.LastName;
+                Session["UserName"] = FullName.ToString();
+                return RedirectToAction("Index", User);
+            }
+            else
+            {
+                ViewBag.Notification = errorObj.wrongCredentials;
+                return View();
+            }
+        }
+
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            Session.Abandon();
+            return RedirectToAction("Login");
+        }
     }
 }
