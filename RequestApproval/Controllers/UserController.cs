@@ -32,9 +32,9 @@ namespace RequestApproval.Controllers
                 user.LastName = x.LastName;
                 user.Address = x.Address;
                 user.Phone = x.Phone;
-                user.RoleId = (int)x.RoleId;
-                user.Password = obj.Password;
-                user.Email = obj.Email;
+                /*user.RoleId = (int)x.RoleId;*/
+/*                user.Password = obj.Password;
+*/                user.Email = obj.Email;
                 user.IsActive = (bool)obj.IsActive;
 
                 users.Add(user);
@@ -133,6 +133,7 @@ namespace RequestApproval.Controllers
             user.LastName = obj.LastName;
             user.Phone = obj.Phone;
             user.Address = obj.Address;
+            user.Email = credential.Email;
             user.Id = id;
             user.IsActive = (bool)credential.IsActive;
 

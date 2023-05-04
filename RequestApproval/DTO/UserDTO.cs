@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace RequestApproval.DTO
 {
@@ -45,6 +46,8 @@ namespace RequestApproval.DTO
 
         [Display(Name ="Status")]
         public Boolean IsActive { get; set; }
+
+        /*public SelectList Clubs { get; set; }*/
     }
     /*public enum IsActive
     {
