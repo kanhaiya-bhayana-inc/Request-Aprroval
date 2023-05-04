@@ -133,10 +133,7 @@ namespace RequestApproval.Controllers
             user.LastName = obj.LastName;
             user.Phone = obj.Phone;
             user.Address = obj.Address;
-            user.RoleId = (int)obj.RoleId;
             user.Id = id;
-            user.Email = credential.Email;
-            user.Password = credential.Password;
             user.IsActive = (bool)credential.IsActive;
 
             return View(user);
@@ -154,10 +151,7 @@ namespace RequestApproval.Controllers
                 userDetail.LastName = user.LastName;
                 userDetail.Address = user.Address;
                 userDetail.Phone = user.Phone;
-                userDetail.RoleId = user.RoleId;
 
-                credential.Email = user.Email;
-                credential.Password = user.Password;
                 credential.IsActive = user.IsActive;
 
                 db.SaveChanges();
