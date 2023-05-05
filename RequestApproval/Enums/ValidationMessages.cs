@@ -7,8 +7,10 @@ namespace RequestApproval.Enums
 {
     public class ValidationMessages
     {
-        public string userExists = "User already exists, try different email.";
+        public const string userExists = "User already exists, try different email.";
 
-        public string wrongCredentials = "Invalid credentials, try again.";
+        public const string wrongCredentials = "Invalid credentials, try again.";
+
+        public const string userDoesnotExists = "User does not exists.";
     }
 }

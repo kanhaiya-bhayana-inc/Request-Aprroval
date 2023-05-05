@@ -13,33 +13,47 @@ namespace RequestApproval.Controllers
     {
         RequestApprovalEntities db = new RequestApprovalEntities();
 
-        private readonly ValidationMessages errorObj = new ValidationMessages();
         
         // GET: User
         public ActionResult Index()
         {
-            List<UserDTO> users = new List<UserDTO>();
-            List<UserDetail> userDetail = new List<UserDetail>();
-            List<Credential> credential = new List<Credential>();
-            userDetail = db.UserDetails.ToList();
-            credential = db.Credentials.ToList();
-            foreach (var x in userDetail)
+            try
             {
-                var obj = db.Credentials.FirstOrDefault(c =>c.UId == x.Id);
-                UserDTO user = new UserDTO();
-                user.Id = x.Id;
-                user.FirstName = x.FirstName;
-                user.LastName = x.LastName;
-                user.Address = x.Address;
-                user.Phone = x.Phone;
-                /*user.RoleId = (int)x.RoleId;*/
-/*                user.Password = obj.Password;
-*/                user.Email = obj.Email;
-                user.IsActive = (bool)obj.IsActive;
 
-                users.Add(user);
+
+                List<UserDTO> users = new List<UserDTO>();
+                List<UserDetail> userDetail1 = new List<UserDetail>();
+                List<UserDetail> userDetail = new List<UserDetail>();
+                List<Credential> credential = new List<Credential>();
+                userDetail1 = db.UserDetails.ToList();
+                foreach(UserDetail x in userDetail1)
+                {
+                    if (x.RoleId == 2)
+                    {
+                        userDetail.Add(x);
+                    }
+                }
+                credential = db.Credentials.ToList();
+                foreach (var x in userDetail)
+                {
+                    var obj = db.Credentials.FirstOrDefault(c => c.UId == x.Id);
+                    UserDTO user = new UserDTO();
+                    user.Id = x.Id;
+                    user.FirstName = x.FirstName;
+                    user.LastName = x.LastName;
+                    user.Address = x.Address;
+                    user.Phone = x.Phone;
+                    /*user.RoleId = (int)x.RoleId;*/
+                    /*                user.Password = obj.Password;
+                    */
+                    user.Email = obj.Email;
+                    user.IsActive = (bool)obj.IsActive;
+
+                    users.Add(user);
+                }
+                return View(users);
             }
-            return View(users);
+            catch { return View(); }
         }
 
         [HttpGet]
@@ -51,40 +65,46 @@ namespace RequestApproval.Controllers
         [HttpPost]
         public ActionResult SignUp(UserDTO request)
         {
-            if (db.Credentials.Any(x =>x.Email == request.Email))
+            try
             {
-                ViewBag.Notification = errorObj.userExists;
-                return View();
+
+
+                if (db.Credentials.Any(x => x.Email == request.Email))
+                {
+                    ViewBag.Notification = ValidationMessages.userExists;
+                    return View();
+                }
+                else
+                {
+                    var password = Helper.Encrypt(request.Password);
+                    UserDetail user = new UserDetail();
+                    Credential credential1 = new Credential();
+
+                    user.Address = request.Address;
+                    user.FirstName = request.FirstName;
+                    user.LastName = request.LastName;
+                    user.Phone = request.Phone;
+                    user.RoleId = 2;
+
+                    db.UserDetails.Add(user);
+                    db.SaveChanges();
+
+                    var UserId = user.Id;
+
+                    credential1.UId = UserId;
+                    credential1.Password = password;
+                    credential1.Email = request.Email;
+                    credential1.IsActive = false;
+
+                    db.Credentials.Add(credential1);
+                    db.SaveChanges();
+
+                    return RedirectToAction("Index");
+
+                }
             }
-            else
-            {
-                var password = Helper.Encrypt(request.Password);
-                UserDetail user = new UserDetail();
-                Credential credential1 = new Credential();
+            catch { return View(); }
 
-                user.Address = request.Address;
-                user.FirstName = request.FirstName;
-                user.LastName = request.LastName;
-                user.Phone = request.Phone;
-                user.RoleId = 2;
-
-                db.UserDetails.Add(user);
-                db.SaveChanges();
-
-                var UserId = user.Id;
-
-                credential1.UId = UserId;
-                credential1.Password = password;
-                credential1.Email = request.Email;
-                credential1.IsActive = false;
-
-                db.Credentials.Add(credential1);
-                db.SaveChanges();
-
-                return RedirectToAction("Index");
-
-            }
-            
         }
 
         [HttpGet]
@@ -97,35 +117,60 @@ namespace RequestApproval.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginDTO request)
         {
-            string password = Helper.Encrypt(request.Password);
-            var checkLogin = db.Credentials.FirstOrDefault(x => x.Email ==request.Email && x.Password ==password);            if (checkLogin != null)
+            try
             {
-                if (checkLogin.IsActive ==  true)
+                var check = db.Credentials.FirstOrDefault(x => x.Email == request.Email);
+                if (check != null)
                 {
-                    Session["Permission"] = "Access-granted";
+
+
+                    string password = Helper.Encrypt(request.Password);
+                    var checkLogin = db.Credentials.FirstOrDefault(x => x.Email == request.Email && x.Password == password); 
+                    if (checkLogin != null)
+                    {
+                        if (checkLogin.IsActive == true)
+                        {
+                            Session["Permission"] = "Access-granted";
+                        }
+                        UserDetail user = db.UserDetails.FirstOrDefault(x => x.Id == checkLogin.UId);
+                        string FullName = user.FirstName + " " + user.LastName;
+                        Session["UserName"] = FullName.ToString();
+                        return RedirectToAction("Index", User);
+                    }
+
+                    else
+                    {
+                        ViewBag.Notification = ValidationMessages.wrongCredentials;
+                        return View();
+                    }
+
                 }
-                UserDetail user = db.UserDetails.FirstOrDefault(x => x.Id == checkLogin.UId);
-                string FullName = user.FirstName + " " + user.LastName;
-                Session["UserName"] = FullName.ToString();
-                return RedirectToAction("Index", User);
+                else
+                {
+                    ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
+                }
             }
-            else
-            {
-                ViewBag.Notification = errorObj.wrongCredentials;
-                return View();
-            }
+            catch { return View(); }
         }
 
         public ActionResult Logout()
         {
+            try
+            {
+
             Session.Clear();
             Session.Abandon();
             return RedirectToAction("Login");
+            }
+            catch { return View(); }
         }
 
         [HttpGet]
         public ActionResult Edit(int id)
         {
+            try
+            {
+
             UserDetail obj = db.UserDetails.FirstOrDefault(x =>x.Id ==id);
             Credential credential = db.Credentials.FirstOrDefault(x => x.UId == id);
             UserDTO user = new UserDTO();
@@ -138,6 +183,8 @@ namespace RequestApproval.Controllers
             user.IsActive = (bool)credential.IsActive;
 
             return View(user);
+            }
+            catch { return View(); }
         }
 
         [HttpPost]
