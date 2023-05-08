@@ -30,7 +30,7 @@ namespace RequestApproval.Controllers
                 /*userDetail = db.UserDetails.ToList();*/
                 foreach(LoginDetail x in loginDetails)
                 {
-                    if (x.IsActive == true && x.DeletedFlag == false)
+                    if (x.DeletedFlag == false)
                     {
                         activeUsers.Add(x);
                     }
@@ -81,13 +81,17 @@ namespace RequestApproval.Controllers
                 }
                 else
                 {
+                    if (Session["Permission"] != null)
+                    {
+                        request.Password = "Test@1234";
+                    }
                     var password = Helper.Encrypt(request.Password);
                     UserDetail user = new UserDetail();
                     LoginDetail loginDetail = new LoginDetail();
 
                     
                     loginDetail.Password = password;
-                    loginDetail.IsActive = true;
+                    loginDetail.IsActive = false;
                     loginDetail.RoleId = 2;
                     loginDetail.DeletedFlag = false;
 
@@ -127,6 +131,7 @@ namespace RequestApproval.Controllers
         {
             try
             {
+                List<UserDTO> userInfo = new List<UserDTO>();
                 if (Session["Id"] != null)
                 {
                     var id =(int) Session["Id"];
@@ -134,9 +139,22 @@ namespace RequestApproval.Controllers
                     UserDTO userDTO = new UserDTO();
                     userDTO.FirstName = user.FirstName;
                     userDTO.LastName = user.LastName;
-                        return View("");
+                    userDTO.Phone = user.Phone;
+                    userDTO.Email = user.Email;
+                    userDTO.Address = user.Address;
+
+                    var user2 = db.LoginDetails.FirstOrDefault(x =>x.Id == id);
+                    if (user2 != null)
+                    {
+                        userDTO.IsActive = (bool)user2.IsActive;
+                        var roleType = db.Roles.FirstOrDefault(x =>x.RoleId == user2.RoleId);
+                        userDTO.UserType = roleType.RoleName;
+
+                        userInfo.Add(userDTO);
+                    }
+                    
                 }
-                return View("");
+                return View(userInfo);
             }
             catch { return View(); }
         }
@@ -158,19 +176,39 @@ namespace RequestApproval.Controllers
                         password = password.Substring(0, 30);
                     }*/
                     var checkLogin = db.UserDetails.FirstOrDefault(x => x.Email == request.Email); 
-                    var checkLogin2 = db.LoginDetails.FirstOrDefault(x => x.Password == password);
+                    var checkLogin2 = db.LoginDetails.FirstOrDefault(x => x.Password == password && x.Id == checkLogin.LoginId);
                     if ((checkLogin != null && checkLogin2 != null) && (checkLogin.LoginId == checkLogin2.Id))
                     {
-
-                        if (checkLogin2.RoleId == 1)
+                        if (checkLogin2.IsActive == true)
                         {
-                            Session["Permission"] = "Access-granted";
+
+
+
+                            if (checkLogin2.RoleId == 1)
+                            {
+                                Session["Permission"] = "Access-granted";
+                            }
+                            UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == checkLogin2.Id);
+                            string FullName = user.FirstName + " " + user.LastName;
+                            Session["RoleID"] = checkLogin2.RoleId;
+                            Session["Id"] = user.LoginId;
+                            Session["UserName"] = FullName.ToString();
+
+                            var roleID = (int)Session["RoleID"];
+                            if (roleID == 2)
+                            {
+                                return RedirectToAction("UserDashboard", User);
+                            }
+                            else
+                            {
+                                return RedirectToAction("Index", User);
+                            }
                         }
-                        UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == checkLogin2.Id);
-                        string FullName = user.FirstName + " " + user.LastName;
-                        Session["Id"] = user.LoginId;
-                        Session["UserName"] = FullName.ToString();
-                        return RedirectToAction("UserDashboard", User);
+                        else
+                        {
+                            ViewBag.Notification = ValidationMessages.notActive;
+                            return View();
+                        }
                     }
 
                     else
@@ -199,23 +237,25 @@ namespace RequestApproval.Controllers
             }
             catch { return View(); }
         }
-        /*
+        
         [HttpGet]
         public ActionResult Edit(int id)
         {
             try
             {
 
-            UserDetail obj = db.UserDetails.FirstOrDefault(x =>x.Id ==id);
-            Credential credential = db.Credentials.FirstOrDefault(x => x.UId == id);
+            UserDetail obj = db.UserDetails.FirstOrDefault(x =>x.LoginId ==id);
+            LoginDetail loginDetails = db.LoginDetails.FirstOrDefault(x => x.Id == id);
             UserDTO user = new UserDTO();
             user.FirstName = obj.FirstName;
             user.LastName = obj.LastName;
             user.Phone = obj.Phone;
             user.Address = obj.Address;
-            user.Email = credential.Email;
+            user.Email = obj.Email;
             user.Id = id;
-            user.IsActive = (bool)credential.IsActive;
+            user.IsActive = (bool)loginDetails.IsActive;
+            Role role = db.Roles.FirstOrDefault(x =>x.RoleId == loginDetails.RoleId);
+            user.UserType = role.RoleName;
 
             return View(user);
             }
@@ -227,15 +267,15 @@ namespace RequestApproval.Controllers
         {
             try
             {
-                UserDetail userDetail = db.UserDetails.Find(id);
-                Credential credential = db.Credentials.FirstOrDefault(x =>x.UId == id);
+                LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x =>x.Id == id);
+                UserDetail userDetail = db.UserDetails.FirstOrDefault(x =>x.LoginId == loginDetail.Id);
 
                 userDetail.FirstName = user.FirstName;
                 userDetail.LastName = user.LastName;
                 userDetail.Address = user.Address;
                 userDetail.Phone = user.Phone;
 
-                credential.IsActive = user.IsActive;
+                loginDetail.IsActive = user.IsActive;
 
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -246,13 +286,15 @@ namespace RequestApproval.Controllers
                 return View();
             }
         }
-
+        
         [HttpGet]
         public ActionResult Delete(int id)
         {
             try
             {
-                db.UserDetails.Remove(db.UserDetails.Find(id));
+                LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x =>x.Id==id);
+                loginDetail.IsActive = false;
+                loginDetail.DeletedFlag = true;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
@@ -267,6 +309,6 @@ namespace RequestApproval.Controllers
                 return RedirectToAction("Index");
             }
             catch { return View(); }
-        }*/
+        }
     }
 }
