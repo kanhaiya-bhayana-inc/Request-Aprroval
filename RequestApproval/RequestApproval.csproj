@@ -138,9 +138,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helper.cs" />
-    <Compile Include="Models\Credential.cs">
-      <DependentUpon>DbModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\DbModel.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -155,6 +152,9 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>DbModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LoginDetail.cs">
+      <DependentUpon>DbModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Role.cs">
       <DependentUpon>DbModel.tt</DependentUpon>
@@ -186,8 +186,8 @@
     <Content Include="Content\Site.css" />
     <Content Include="Models\DbModel.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DbModel.Context.cs</LastGenOutput>
       <DependentUpon>DbModel.edmx</DependentUpon>
+      <LastGenOutput>DbModel.Context.cs</LastGenOutput>
     </Content>
     <Content Include="Models\DbModel.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

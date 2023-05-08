@@ -11,7 +11,7 @@ namespace RequestApproval.Controllers
 {
     public class UserController : Controller
     {
-        RequestApprovalEntities db = new RequestApprovalEntities();
+        RequestApprovalEntities4 db = new RequestApprovalEntities4();
 
         
         // GET: User
@@ -22,32 +22,37 @@ namespace RequestApproval.Controllers
 
 
                 List<UserDTO> users = new List<UserDTO>();
-                List<UserDetail> userDetail1 = new List<UserDetail>();
+                /*List<UserDetail> userDetail1 = new List<UserDetail>();*/
                 List<UserDetail> userDetail = new List<UserDetail>();
-                List<Credential> credential = new List<Credential>();
-                userDetail1 = db.UserDetails.ToList();
-                foreach(UserDetail x in userDetail1)
+                List<LoginDetail> loginDetails = new List<LoginDetail>();
+                List<LoginDetail> activeUsers = new List<LoginDetail>();
+                loginDetails = db.LoginDetails.ToList();
+                /*userDetail = db.UserDetails.ToList();*/
+                foreach(LoginDetail x in loginDetails)
                 {
-                    if (x.RoleId == 2)
+                    if (x.IsActive == true && x.DeletedFlag == false)
                     {
-                        userDetail.Add(x);
+                        activeUsers.Add(x);
                     }
                 }
-                credential = db.Credentials.ToList();
-                foreach (var x in userDetail)
+                /*credential = db.Credentials.ToList();*/
+                foreach (var x in activeUsers)
                 {
-                    var obj = db.Credentials.FirstOrDefault(c => c.UId == x.Id);
+                    var obj = db.UserDetails.FirstOrDefault(c => c.LoginId == x.Id);
+                    var roleType = db.Roles.FirstOrDefault(c =>c.RoleId == x.RoleId);
                     UserDTO user = new UserDTO();
                     user.Id = x.Id;
-                    user.FirstName = x.FirstName;
-                    user.LastName = x.LastName;
-                    user.Address = x.Address;
-                    user.Phone = x.Phone;
+                    user.FirstName = obj.FirstName;
+                    user.LastName = obj.LastName;
+                    user.Address = obj.Address;
+                    user.Phone = obj.Phone;
                     /*user.RoleId = (int)x.RoleId;*/
                     /*                user.Password = obj.Password;
                     */
                     user.Email = obj.Email;
-                    user.IsActive = (bool)obj.IsActive;
+                    user.IsActive = (bool)x.IsActive;
+                    user.DeletedFlag = (bool)x.DeletedFlag;
+                    user.UserType = roleType.RoleName;
 
                     users.Add(user);
                 }
@@ -69,7 +74,7 @@ namespace RequestApproval.Controllers
             {
 
 
-                if (db.Credentials.Any(x => x.Email == request.Email))
+                if (db.UserDetails.Any(x => x.Email == request.Email))
                 {
                     ViewBag.Notification = ValidationMessages.userExists;
                     return View();
@@ -78,25 +83,28 @@ namespace RequestApproval.Controllers
                 {
                     var password = Helper.Encrypt(request.Password);
                     UserDetail user = new UserDetail();
-                    Credential credential1 = new Credential();
+                    LoginDetail loginDetail = new LoginDetail();
 
+                    
+                    loginDetail.Password = password;
+                    loginDetail.IsActive = true;
+                    loginDetail.RoleId = 2;
+                    loginDetail.DeletedFlag = false;
+
+
+                    db.LoginDetails.Add(loginDetail);
+                    db.SaveChanges();
+
+                    var UserId = loginDetail.Id;
+
+                    user.LoginId= UserId;
                     user.Address = request.Address;
                     user.FirstName = request.FirstName;
                     user.LastName = request.LastName;
                     user.Phone = request.Phone;
-                    user.RoleId = 2;
+                    user.Email = request.Email;
 
                     db.UserDetails.Add(user);
-                    db.SaveChanges();
-
-                    var UserId = user.Id;
-
-                    credential1.UId = UserId;
-                    credential1.Password = password;
-                    credential1.Email = request.Email;
-                    credential1.IsActive = false;
-
-                    db.Credentials.Add(credential1);
                     db.SaveChanges();
 
                     return RedirectToAction("Index");
@@ -106,11 +114,31 @@ namespace RequestApproval.Controllers
             catch { return View(); }
 
         }
+        
 
         [HttpGet]
         public ActionResult Login()
         {
             return View();
+        }
+
+        [HttpGet]
+        public ActionResult UserDashboard() 
+        {
+            try
+            {
+                if (Session["Id"] != null)
+                {
+                    var id =(int) Session["Id"];
+                    var user = db.UserDetails.FirstOrDefault(x => x.LoginId == id);
+                    UserDTO userDTO = new UserDTO();
+                    userDTO.FirstName = user.FirstName;
+                    userDTO.LastName = user.LastName;
+                        return View("");
+                }
+                return View("");
+            }
+            catch { return View(); }
         }
 
         [HttpPost]
@@ -119,27 +147,30 @@ namespace RequestApproval.Controllers
         {
             try
             {
-                var check = db.Credentials.FirstOrDefault(x => x.Email == request.Email);
+                var check = db.UserDetails.FirstOrDefault(x => x.Email == request.Email);
                 if (check != null)
                 {
 
                     string password = Helper.Encrypt(request.Password);
-                    if(check.Email == "david@dragan.com")
+                   /* if(check.Email == "david@dragan.com")
                     {
                         Session["RoleName"] = "Admin";
                         password = password.Substring(0, 30);
-                    }
-                    var checkLogin = db.Credentials.FirstOrDefault(x => x.Email == request.Email && x.Password == password); 
-                    if (checkLogin != null)
+                    }*/
+                    var checkLogin = db.UserDetails.FirstOrDefault(x => x.Email == request.Email); 
+                    var checkLogin2 = db.LoginDetails.FirstOrDefault(x => x.Password == password);
+                    if ((checkLogin != null && checkLogin2 != null) && (checkLogin.LoginId == checkLogin2.Id))
                     {
-                        if (checkLogin.IsActive == true)
+
+                        if (checkLogin2.RoleId == 1)
                         {
                             Session["Permission"] = "Access-granted";
                         }
-                        UserDetail user = db.UserDetails.FirstOrDefault(x => x.Id == checkLogin.UId);
+                        UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == checkLogin2.Id);
                         string FullName = user.FirstName + " " + user.LastName;
+                        Session["Id"] = user.LoginId;
                         Session["UserName"] = FullName.ToString();
-                        return RedirectToAction("Index", User);
+                        return RedirectToAction("UserDashboard", User);
                     }
 
                     else
@@ -168,7 +199,7 @@ namespace RequestApproval.Controllers
             }
             catch { return View(); }
         }
-
+        /*
         [HttpGet]
         public ActionResult Edit(int id)
         {
@@ -236,6 +267,6 @@ namespace RequestApproval.Controllers
                 return RedirectToAction("Index");
             }
             catch { return View(); }
-        }
+        }*/
     }
 }

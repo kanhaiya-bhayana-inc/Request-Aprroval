@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Schema Namespace="RequestApprovalModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-  <EntityType Name="Credentials">
+  <EntityType Name="LoginDetails">
     <Key>
-      <PropertyRef Name="Email" />
+      <PropertyRef Name="Id" />
     </Key>
-    <Property Name="UId" Type="int" />
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="Password" Type="varchar" MaxLength="255" />
-    <Property Name="Email" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="RoleId" Type="int" />
     <Property Name="IsActive" Type="bit" />
+    <Property Name="DeletedFlag" Type="bit" />
   </EntityType>
   <EntityType Name="Roles">
     <Key>
@@ -21,37 +22,38 @@
       <PropertyRef Name="Id" />
     </Key>
     <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="LoginId" Type="int" />
     <Property Name="FirstName" Type="varchar" MaxLength="30" />
     <Property Name="LastName" Type="varchar" MaxLength="30" />
+    <Property Name="Email" Type="varchar" MaxLength="50" />
     <Property Name="Phone" Type="varchar" MaxLength="15" />
     <Property Name="Address" Type="varchar" MaxLength="255" />
-    <Property Name="RoleId" Type="int" />
   </EntityType>
   <Association Name="FK_UserDetails_RoleId">
     <End Role="Roles" Type="Self.Roles" Multiplicity="0..1">
       <OnDelete Action="Cascade" />
     </End>
-    <End Role="UserDetails" Type="Self.UserDetails" Multiplicity="*" />
+    <End Role="LoginDetails" Type="Self.LoginDetails" Multiplicity="*" />
     <ReferentialConstraint>
       <Principal Role="Roles">
         <PropertyRef Name="RoleId" />
       </Principal>
-      <Dependent Role="UserDetails">
+      <Dependent Role="LoginDetails">
         <PropertyRef Name="RoleId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
   <Association Name="FK_USerId_UserDetails">
-    <End Role="UserDetails" Type="Self.UserDetails" Multiplicity="0..1">
+    <End Role="LoginDetails" Type="Self.LoginDetails" Multiplicity="0..1">
       <OnDelete Action="Cascade" />
     </End>
-    <End Role="Credentials" Type="Self.Credentials" Multiplicity="*" />
+    <End Role="UserDetails" Type="Self.UserDetails" Multiplicity="*" />
     <ReferentialConstraint>
-      <Principal Role="UserDetails">
+      <Principal Role="LoginDetails">
         <PropertyRef Name="Id" />
       </Principal>
-      <Dependent Role="Credentials">
-        <PropertyRef Name="UId" />
+      <Dependent Role="UserDetails">
+        <PropertyRef Name="LoginId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
@@ -64,16 +66,16 @@
     <Parameter Name="password" Type="varchar" Mode="In" />
   </Function>
   <EntityContainer Name="RequestApprovalModelStoreContainer">
-    <EntitySet Name="Credentials" EntityType="Self.Credentials" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="LoginDetails" EntityType="Self.LoginDetails" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="Roles" EntityType="Self.Roles" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="UserDetails" EntityType="Self.UserDetails" Schema="dbo" store:Type="Tables" />
     <AssociationSet Name="FK_UserDetails_RoleId" Association="Self.FK_UserDetails_RoleId">
       <End Role="Roles" EntitySet="Roles" />
-      <End Role="UserDetails" EntitySet="UserDetails" />
+      <End Role="LoginDetails" EntitySet="LoginDetails" />
     </AssociationSet>
     <AssociationSet Name="FK_USerId_UserDetails" Association="Self.FK_USerId_UserDetails">
+      <End Role="LoginDetails" EntitySet="LoginDetails" />
       <End Role="UserDetails" EntitySet="UserDetails" />
-      <End Role="Credentials" EntitySet="Credentials" />
     </AssociationSet>
   </EntityContainer>
 </Schema>

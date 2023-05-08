@@ -12,18 +12,22 @@ namespace RequestApproval.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Role
+    public partial class LoginDetail
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Role()
+        public LoginDetail()
         {
-            this.LoginDetails = new HashSet<LoginDetail>();
+            this.UserDetails = new HashSet<UserDetail>();
         }
     
-        public int RoleId { get; set; }
-        public string RoleName { get; set; }
+        public int Id { get; set; }
+        public string Password { get; set; }
+        public Nullable<int> RoleId { get; set; }
+        public Nullable<bool> IsActive { get; set; }
+        public Nullable<bool> DeletedFlag { get; set; }
     
+        public virtual Role Role { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<LoginDetail> LoginDetails { get; set; }
+        public virtual ICollection<UserDetail> UserDetails { get; set; }
     }
 }

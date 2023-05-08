@@ -31,16 +31,19 @@
         <th>
             @Html.DisplayNameFor(model => model.Email)
         </th>
+        <th>
+            @Html.DisplayNameFor(model => model.UserType)
+        </th>
         @if (Session["Permission"] != null)
-            {
+        {
 
-        <th>
-            @Html.DisplayNameFor(model => model.IsActive)
-        </th>
-        <th>
-            @Html.Label("Actions")
-        </th>
-            }
+            <th>
+                @Html.DisplayNameFor(model => model.IsActive)
+            </th>
+            <th>
+                @Html.Label("Actions")
+            </th>
+        }
         <th></th>
     </tr>
 
@@ -69,25 +72,28 @@
         <td>
             @Html.DisplayFor(modelItem => item.Email)
         </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.UserType)
+        </td>
 
         @if (Session["Permission"] != null)
         {
 
 
-        <td>
-            @if (item.IsActive)
-            {
-                @Html.Label("Active")
-            }
-            else
-            {
-                @Html.Label("In-Active")
-            }
-        </td>
-        <td>
-            <a href="@Url.Action("Edit", "User", new { @id = item.Id })" class="btn btn-primary">Edit</a>
-            <a href="@Url.Action("Delete", "User", new { @id = item.Id })" class="btn btn-danger" onclick="return confirm('Are you sure want to delete @item.FirstName @item.LastName?');">Delete</a>
-        </td>
+            <td>
+                @if (item.IsActive)
+                {
+                    @Html.Label("Active")
+                }
+                else
+                {
+                    @Html.Label("In-Active")
+                }
+            </td>
+            <td>
+                <a href="@Url.Action("Edit", "User", new { @id = item.Id })" class="btn btn-primary">Edit</a>
+                <a href="@Url.Action("Delete", "User", new { @id = item.Id })" class="btn btn-danger" onclick="return confirm('Are you sure want to delete @item.FirstName @item.LastName?');">Delete</a>
+            </td>
         }
     </tr>
 }

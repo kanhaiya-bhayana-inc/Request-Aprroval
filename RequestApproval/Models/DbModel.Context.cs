@@ -15,10 +15,10 @@ namespace RequestApproval.Models
     using System.Data.Entity.Core.Objects;
     using System.Linq;
     
-    public partial class RequestApprovalEntities : DbContext
+    public partial class RequestApprovalEntities4 : DbContext
     {
-        public RequestApprovalEntities()
-            : base("name=RequestApprovalEntities")
+        public RequestApprovalEntities4()
+            : base("name=RequestApprovalEntities4")
         {
         }
     
@@ -27,7 +27,7 @@ namespace RequestApproval.Models
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<Credential> Credentials { get; set; }
+        public virtual DbSet<LoginDetail> LoginDetails { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<UserDetail> UserDetails { get; set; }
     

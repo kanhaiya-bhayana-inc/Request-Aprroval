@@ -4,12 +4,12 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="053b4cea4964456d9a3d2f939f464ea3" Name="Diagram1">
-        <EntityTypeShape EntityType="RequestApprovalModel.Credential" Width="1.5" PointX="5.25" PointY="1.25" IsExpanded="true" />
+      <Diagram DiagramId="51cbd700fbdc4c4ca33bdaa790896e86" Name="Diagram1">
+        <EntityTypeShape EntityType="RequestApprovalModel.LoginDetail" Width="1.5" PointX="3" PointY="1" IsExpanded="true" />
         <EntityTypeShape EntityType="RequestApprovalModel.Role" Width="1.5" PointX="0.75" PointY="1.375" IsExpanded="true" />
-        <EntityTypeShape EntityType="RequestApprovalModel.UserDetail" Width="1.5" PointX="3" PointY="1" IsExpanded="true" />
-        <AssociationConnector Association="RequestApprovalModel.FK_USerId_UserDetails" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="RequestApprovalModel.UserDetail" Width="1.5" PointX="5.25" PointY="1" IsExpanded="true" />
         <AssociationConnector Association="RequestApprovalModel.FK_UserDetails_RoleId" ManuallyRouted="false" />
+        <AssociationConnector Association="RequestApprovalModel.FK_USerId_UserDetails" ManuallyRouted="false" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

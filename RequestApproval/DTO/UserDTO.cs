@@ -47,6 +47,10 @@ namespace RequestApproval.DTO
         [Display(Name ="Status")]
         public Boolean IsActive { get; set; }
 
+        public Boolean DeletedFlag { get; set; }
+
+        public string UserType { get; set; }
+
         /*public SelectList Clubs { get; set; }*/
     }
     /*public enum IsActive

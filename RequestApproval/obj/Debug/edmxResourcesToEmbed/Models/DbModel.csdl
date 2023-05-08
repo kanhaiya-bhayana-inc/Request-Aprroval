@@ -1,14 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Schema Namespace="RequestApprovalModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
-  <EntityType Name="Credential">
+  <EntityType Name="LoginDetail">
     <Key>
-      <PropertyRef Name="Email" />
+      <PropertyRef Name="Id" />
     </Key>
-    <Property Name="UId" Type="Int32" />
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
     <Property Name="Password" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
-    <Property Name="Email" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="RoleId" Type="Int32" />
     <Property Name="IsActive" Type="Boolean" />
-    <NavigationProperty Name="UserDetail" Relationship="Self.FK_USerId_UserDetails" FromRole="Credentials" ToRole="UserDetails" />
+    <Property Name="DeletedFlag" Type="Boolean" />
+    <NavigationProperty Name="Role" Relationship="Self.FK_UserDetails_RoleId" FromRole="LoginDetails" ToRole="Roles" />
+    <NavigationProperty Name="UserDetails" Relationship="Self.FK_USerId_UserDetails" FromRole="LoginDetails" ToRole="UserDetails" />
   </EntityType>
   <EntityType Name="Role">
     <Key>
@@ -16,59 +18,59 @@
     </Key>
     <Property Name="RoleId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
     <Property Name="RoleName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
-    <NavigationProperty Name="UserDetails" Relationship="Self.FK_UserDetails_RoleId" FromRole="Roles" ToRole="UserDetails" />
+    <NavigationProperty Name="LoginDetails" Relationship="Self.FK_UserDetails_RoleId" FromRole="Roles" ToRole="LoginDetails" />
   </EntityType>
   <EntityType Name="UserDetail">
     <Key>
       <PropertyRef Name="Id" />
     </Key>
     <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="LoginId" Type="Int32" />
     <Property Name="FirstName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
     <Property Name="LastName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+    <Property Name="Email" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
     <Property Name="Phone" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
     <Property Name="Address" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
-    <Property Name="RoleId" Type="Int32" />
-    <NavigationProperty Name="Credentials" Relationship="Self.FK_USerId_UserDetails" FromRole="UserDetails" ToRole="Credentials" />
-    <NavigationProperty Name="Role" Relationship="Self.FK_UserDetails_RoleId" FromRole="UserDetails" ToRole="Roles" />
+    <NavigationProperty Name="LoginDetail" Relationship="Self.FK_USerId_UserDetails" FromRole="UserDetails" ToRole="LoginDetails" />
   </EntityType>
-  <Association Name="FK_USerId_UserDetails">
-    <End Role="UserDetails" Type="Self.UserDetail" Multiplicity="0..1">
-      <OnDelete Action="Cascade" />
-    </End>
-    <End Role="Credentials" Type="Self.Credential" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="UserDetails">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Credentials">
-        <PropertyRef Name="UId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
   <Association Name="FK_UserDetails_RoleId">
     <End Role="Roles" Type="Self.Role" Multiplicity="0..1">
       <OnDelete Action="Cascade" />
     </End>
-    <End Role="UserDetails" Type="Self.UserDetail" Multiplicity="*" />
+    <End Role="LoginDetails" Type="Self.LoginDetail" Multiplicity="*" />
     <ReferentialConstraint>
       <Principal Role="Roles">
         <PropertyRef Name="RoleId" />
       </Principal>
-      <Dependent Role="UserDetails">
+      <Dependent Role="LoginDetails">
         <PropertyRef Name="RoleId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <EntityContainer Name="RequestApprovalEntities" annotation:LazyLoadingEnabled="true">
-    <EntitySet Name="Credentials" EntityType="Self.Credential" />
+  <Association Name="FK_USerId_UserDetails">
+    <End Role="LoginDetails" Type="Self.LoginDetail" Multiplicity="0..1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="UserDetails" Type="Self.UserDetail" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="LoginDetails">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="UserDetails">
+        <PropertyRef Name="LoginId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="RequestApprovalEntities4" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="LoginDetails" EntityType="Self.LoginDetail" />
     <EntitySet Name="Roles" EntityType="Self.Role" />
     <EntitySet Name="UserDetails" EntityType="Self.UserDetail" />
-    <AssociationSet Name="FK_USerId_UserDetails" Association="Self.FK_USerId_UserDetails">
-      <End Role="UserDetails" EntitySet="UserDetails" />
-      <End Role="Credentials" EntitySet="Credentials" />
-    </AssociationSet>
     <AssociationSet Name="FK_UserDetails_RoleId" Association="Self.FK_UserDetails_RoleId">
       <End Role="Roles" EntitySet="Roles" />
+      <End Role="LoginDetails" EntitySet="LoginDetails" />
+    </AssociationSet>
+    <AssociationSet Name="FK_USerId_UserDetails" Association="Self.FK_USerId_UserDetails">
+      <End Role="LoginDetails" EntitySet="LoginDetails" />
       <End Role="UserDetails" EntitySet="UserDetails" />
     </AssociationSet>
     <FunctionImport Name="CreateAdminCredentials">

@@ -10,23 +10,23 @@ namespace RequestApproval.App_Start
     {
         public static void init()
         {
-            try
+            /*try
             {
 
-            RequestApprovalEntities db = new RequestApprovalEntities();
+            RequestApprovalEntities4 db = new RequestApprovalEntities4();
             UserDetail admin = db.UserDetails.FirstOrDefault(x => x.RoleId == 1);
             if (admin == null)
             {
-                    string password = "David@1234";
+                    string password = "Admin@1234";
                     string adminPassword = Helper.Encrypt(password);
-                /*List<>*/
-                db.CreateAdminCredentials("David","Dragan","6987012354","South Delhi","david@dragan.com", adminPassword);
+                *//*List<>*//*
+                db.CreateAdminCredentials("Admin","","6987012354","South Delhi","admin@requestapproval.com", adminPassword);
             }
             }
             catch (Exception ex)
             {
                 throw ex;
-            }
+            }*/
         }
     }
 }
