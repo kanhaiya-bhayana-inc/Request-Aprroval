@@ -12,6 +12,6 @@ namespace RequestApproval.Enums
         public const string wrongCredentials = "Invalid credentials, try again.";
 
         public const string userDoesnotExists = "User does not exists.";
-        public const string notActive = "Account not activated yet.";
+        public const string notActive = "You do not have permission to access the account, contact admin.";
     }
 }
