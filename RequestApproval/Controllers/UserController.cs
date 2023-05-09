@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Web;
 using System.Web.Mvc;
 using RequestApproval.DTO;
@@ -21,39 +22,76 @@ namespace RequestApproval.Controllers
             {
 
 
-                List<UserDTO> users = new List<UserDTO>();
-                List<UserDetail> userDetail = new List<UserDetail>();
-                List<LoginDetail> loginDetails = new List<LoginDetail>();
-                List<LoginDetail> activeUsers = new List<LoginDetail>();
-                loginDetails = db.LoginDetails.ToList();
-                foreach(LoginDetail x in loginDetails)
-                {
-                    if (x.DeletedFlag == false && x.RoleId == 2)
-                    {
-                        activeUsers.Add(x);
-                    }
-                }
-                foreach (var x in activeUsers)
-                {
-                    var obj = db.UserDetails.FirstOrDefault(c => c.LoginId == x.Id);
-                    var roleType = db.Roles.FirstOrDefault(c =>c.RoleId == x.RoleId);
-                    UserDTO user = new UserDTO();
-                    user.Id = x.Id;
-                    user.FirstName = obj.FirstName;
-                    user.LastName = obj.LastName;
-                    user.Address = obj.Address;
-                    user.Phone = obj.Phone;
-                    
-                    user.Email = obj.Email;
-                    user.IsActive = (bool)x.IsActive;
-                    user.DeletedFlag = (bool)x.DeletedFlag;
-                    user.UserType = roleType.RoleName;
+                List<UserDTO> users = (from ud in db.UserDetails
+                                       from ld in db.LoginDetails
+                                       from rd in db.Roles
+                                       where ld.Id == ud.LoginId
+                                       where rd.RoleId == ld.RoleId
+                                       select new
+                                       {
+                                           Id = (int)ld.Id,
+                                           FirstName = ud.FirstName,
+                                           LastName = ud.LastName,
+                                           Phone = ud.Phone,
+                                           Address = ud.Address,
+                                           RoleId = (int)ld.RoleId,
+                                           Email = ud.Email,
+                                           IsActive = (bool)ld.IsActive,
+                                           DeletedFlag = (bool)ld.DeletedFlag,
+                                           UserType = rd.RoleName
+                                       }
+                               ).AsEnumerable().Select(x => new UserDTO(
+                                   x.Id,
+                              x.FirstName,
+                              x.LastName,
+                              x.Phone,
+                              x.Address,
+                              x.RoleId,
+                              x.Email,
+                              x.IsActive,
+                              x.DeletedFlag,
+                              x.UserType
+                                   )).ToList();
 
-                    users.Add(user);
-                }
                 return View(users);
             }
             catch { return View(); }
+        }
+
+        public ActionResult Display()
+        {
+            List<UserDTO> users = (from ud in db.UserDetails
+                        from ld in db.LoginDetails
+                        from rd in db.Roles
+                        where ld.Id == ud.LoginId
+                        where rd.RoleId == ld.RoleId
+                        select new 
+                        {
+                            Id = (int)ld.Id,
+                            FirstName = ud.FirstName,
+                            LastName = ud.LastName,
+                            Phone = ud.Phone,
+                            Address = ud.Address,
+                            RoleId = (int)ld.RoleId,
+                            Email = ud.Email,
+                            IsActive = (bool)ld.IsActive,
+                            DeletedFlag = (bool)ld.DeletedFlag,
+                            UserType = rd.RoleName
+                        }
+                              ).AsEnumerable().Select(x => new UserDTO(
+                                  x.Id,
+                             x.FirstName,
+                             x.LastName,
+                             x.Phone,
+                             x.Address,
+                             x.RoleId,
+                             x.Email,
+                             x.IsActive,
+                             x.DeletedFlag,
+                             x.UserType
+                                  )).ToList();
+          
+            return View(users);
         }
 
         [HttpGet]

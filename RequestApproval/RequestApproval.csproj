@@ -233,6 +233,7 @@
     <Content Include="Views\User\Login.cshtml" />
     <Content Include="Views\User\Edit.cshtml" />
     <Content Include="Views\User\UserDashboard.cshtml" />
+    <Content Include="Views\User\Display.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

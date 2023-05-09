@@ -9,7 +9,21 @@ namespace RequestApproval.DTO
 {
     public class UserDTO
     {
+        public UserDTO() { }
+
+        public UserDTO(int Id, string FirstName, string LastName, string Phone, string Address, int RoleId, string Email, bool IsActive, bool DeletedFlag, string UserType) {
         
+            this.Id = Id;
+            this.FirstName = FirstName;
+            this.LastName = LastName;
+            this.Phone = Phone;
+            this.Address = Address;
+            this.RoleId = RoleId;
+            this.Email = Email;
+            this.IsActive = IsActive;
+            this.DeletedFlag = DeletedFlag;
+            this.UserType = UserType;
+        }
         public int Id { get; set; }
 
         [Required(ErrorMessage = "This field is required!")]
