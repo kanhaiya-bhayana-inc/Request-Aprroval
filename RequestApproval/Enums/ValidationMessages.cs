@@ -13,5 +13,6 @@ namespace RequestApproval.Enums
 
         public const string userDoesnotExists = "User does not exists.";
         public const string notActive = "You do not have permission to access the account, contact admin.";
+        public const string wentWrong = "Something went wrong, try later.";
     }
 }

@@ -25,7 +25,6 @@ namespace RequestApproval.App_Start
                 else
                 {
                     UserDetail userDetail = db.UserDetails.FirstOrDefault(x => x.Email == "admin@requestapproval.com");
-                    /*LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x => x.)*/
                     int id = (int)userDetail.LoginId;
                     db.UpdateAdminCredentials(id, "Admin", "", "6987012354", "South Delhi", adminPassword);
                 }

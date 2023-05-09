@@ -231,17 +231,95 @@ namespace RequestApproval.Controllers
         {
             try
             {
-                var check = db.UserDetails.FirstOrDefault(x => x.Email == request.Email);
+                var checkExistance = db.UserDetails.Any(x => x.Email == request.Email);
+                if(checkExistance)
+                {
+                    List<UserDetail> emailsExistCheck = new List<UserDetail>();
+                    emailsExistCheck = db.UserDetails.ToList();
+                    int id = 0;
+                    bool exist = false;
+                    foreach (var users in emailsExistCheck)
+                    {
+                        if (users.Email == request.Email)
+                        {
+                            var checkFlag = db.LoginDetails.FirstOrDefault(x => x.Id == users.LoginId);
+                            if (checkFlag.DeletedFlag == false)
+                            {
+                                id = checkFlag.Id;
+                                exist = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (exist)
+                    {
+                        string password = Helper.Encrypt(request.Password);
+                        var ob = db.LoginDetails.Find(id);
+                        if (ob != null && ob.Password == password)
+                        {
+                            // if user is not active
+                            if(ob.IsActive == false)
+                            {
+                                ViewBag.Notification = ValidationMessages.notActive;
+                                return View();
+                            }
+                            // if user is active
+                            else if (ob.IsActive == true)
+                            {
+                                if (ob.RoleId == 1)
+                                {
+                                    Session["Permission"] = "Access-granted";
+                                }
+                                UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == ob.Id);
+                                string FullName = user.FirstName + " " + user.LastName;
+                                Session["RoleID"] = ob.RoleId;
+                                Session["Id"] = user.LoginId;
+                                Session["UserName"] = FullName.ToString();
+
+                                var roleID = (int)Session["RoleID"];
+                                // if user is trying to sign-in
+                                if (roleID == 2)
+                                {
+                                    return RedirectToAction("UserDashboard", User);
+                                }
+                                // if admin is trying to sign-in
+                                else
+                                {
+                                    return RedirectToAction("Index", User);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ViewBag.Notification = ValidationMessages.wrongCredentials;
+                            return View();
+                        }
+                        /*ViewBag.Notification = ValidationMessages.wentWrong;
+                        return View();*/
+                        
+                    }
+                    else
+                    {
+                        ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
+                    }
+                    ViewBag.Notification = ValidationMessages.wentWrong;
+                    return View();
+                }
+                else
+                {
+                    ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
+                }
+                /*var check = db.UserDetails.FirstOrDefault(x => x.Email == request.Email);
                 var check1 = db.LoginDetails.FirstOrDefault(x => x.Id == check.LoginId);
                 if (check != null && check1.DeletedFlag == false)
                 {
 
                     string password = Helper.Encrypt(request.Password);
-                   /* if(check.Email == "david@dragan.com")
+                   *//* if(check.Email == "david@dragan.com")
                     {
                         Session["RoleName"] = "Admin";
                         password = password.Substring(0, 30);
-                    }*/
+                    }*//*
                     var checkLogin = db.UserDetails.FirstOrDefault(x => x.Email == request.Email); 
                     var checkLogin2 = db.LoginDetails.FirstOrDefault(x => x.Password == password && x.Id == checkLogin.LoginId);
                     if ((checkLogin != null && checkLogin2 != null) && (checkLogin.LoginId == checkLogin2.Id))
@@ -288,7 +366,7 @@ namespace RequestApproval.Controllers
                 else
                 {
                     ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
-                }
+                }*/
             }
             catch { return View(); }
         }
