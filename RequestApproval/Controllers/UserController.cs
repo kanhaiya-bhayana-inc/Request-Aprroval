@@ -14,7 +14,6 @@ namespace RequestApproval.Controllers
     {
         RequestApprovalEntities5 db = new RequestApprovalEntities5();
 
-        
         // GET: User
         public ActionResult Index()
         {
@@ -97,13 +96,11 @@ namespace RequestApproval.Controllers
             return View();
         }
 
-
         [HttpPost]
         public ActionResult SignUp(UserDTO request)
         {
             try
             {
-
                 var checkExistance = db.UserDetails.Any(x => x.Email == request.Email);
                 if (checkExistance)
                 {
@@ -206,7 +203,6 @@ namespace RequestApproval.Controllers
 
         }
         
-
         [HttpGet]
         public ActionResult Login()
         {
