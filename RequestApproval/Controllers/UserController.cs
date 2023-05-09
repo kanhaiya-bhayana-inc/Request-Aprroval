@@ -27,6 +27,7 @@ namespace RequestApproval.Controllers
                                        from rd in db.Roles
                                        where ld.Id == ud.LoginId
                                        where rd.RoleId == ld.RoleId
+                                       && ld.RoleId == 2 && ld.DeletedFlag == false
                                        select new
                                        {
                                            Id = (int)ld.Id,
@@ -37,7 +38,6 @@ namespace RequestApproval.Controllers
                                            RoleId = (int)ld.RoleId,
                                            Email = ud.Email,
                                            IsActive = (bool)ld.IsActive,
-                                           DeletedFlag = (bool)ld.DeletedFlag,
                                            UserType = rd.RoleName
                                        }
                                ).AsEnumerable().Select(x => new UserDTO(
@@ -49,7 +49,6 @@ namespace RequestApproval.Controllers
                               x.RoleId,
                               x.Email,
                               x.IsActive,
-                              x.DeletedFlag,
                               x.UserType
                                    )).ToList();
 
@@ -65,7 +64,8 @@ namespace RequestApproval.Controllers
                         from rd in db.Roles
                         where ld.Id == ud.LoginId
                         where rd.RoleId == ld.RoleId
-                        select new 
+                                   && ld.RoleId==2 && ld.DeletedFlag == false
+                                   select new 
                         {
                             Id = (int)ld.Id,
                             FirstName = ud.FirstName,
@@ -75,7 +75,6 @@ namespace RequestApproval.Controllers
                             RoleId = (int)ld.RoleId,
                             Email = ud.Email,
                             IsActive = (bool)ld.IsActive,
-                            DeletedFlag = (bool)ld.DeletedFlag,
                             UserType = rd.RoleName
                         }
                               ).AsEnumerable().Select(x => new UserDTO(
@@ -87,7 +86,6 @@ namespace RequestApproval.Controllers
                              x.RoleId,
                              x.Email,
                              x.IsActive,
-                             x.DeletedFlag,
                              x.UserType
                                   )).ToList();
           
@@ -220,30 +218,48 @@ namespace RequestApproval.Controllers
         {
             try
             {
-                List<UserDTO> userInfo = new List<UserDTO>();
                 if (Session["Id"] != null)
                 {
                     var id =(int) Session["Id"];
-                    var user = db.UserDetails.FirstOrDefault(x => x.LoginId == id);
-                    UserDTO userDTO = new UserDTO();
-                    userDTO.FirstName = user.FirstName;
-                    userDTO.LastName = user.LastName;
-                    userDTO.Phone = user.Phone;
-                    userDTO.Email = user.Email;
-                    userDTO.Address = user.Address;
+                    List<UserDTO> userInfo = (from ud in db.UserDetails
+                                           from ld in db.LoginDetails
+                                           from rd in db.Roles
+                                           where ld.Id == ud.LoginId
+                                           where rd.RoleId == ld.RoleId
+                                                      where ld.Id == id
+                                           select new
+                                           {
+                                               Id = (int)ld.Id,
+                                               FirstName = ud.FirstName,
+                                               LastName = ud.LastName,
+                                               Phone = ud.Phone,
+                                               Address = ud.Address,
+                                               RoleId = (int)ld.RoleId,
+                                               Email = ud.Email,
+                                               IsActive = (bool)ld.IsActive,
+                                               UserType = rd.RoleName
+                                           }
+                              ).AsEnumerable().Select(x => new UserDTO(
+                                  x.Id,
+                             x.FirstName,
+                             x.LastName,
+                             x.Phone,
+                             x.Address,
+                             x.RoleId,
+                             x.Email,
+                             x.IsActive,
+                             x.UserType
+                                  )).ToList();
 
-                    var user2 = db.LoginDetails.FirstOrDefault(x =>x.Id == id);
-                    if (user2 != null)
-                    {
-                        userDTO.IsActive = (bool)user2.IsActive;
-                        var roleType = db.Roles.FirstOrDefault(x =>x.RoleId == user2.RoleId);
-                        userDTO.UserType = roleType.RoleName;
+                  
 
-                        userInfo.Add(userDTO);
-                    }
-                    
-                }
                 return View(userInfo);
+                }
+                else
+                {
+                    ViewBag.Notification = ValidationMessages.wentWrong;
+                    return View();
+                }
             }
             catch { return View(); }
         }
@@ -254,80 +270,74 @@ namespace RequestApproval.Controllers
         {
             try
             {
-                var checkExistance = db.UserDetails.Any(x => x.Email == request.Email);
-                if(checkExistance)
+                var password = Helper.Encrypt(request.Password);
+                var users = (from ud in db.UserDetails
+                                       from ld in db.LoginDetails
+                                       where ld.Id == ud.LoginId
+                                        && ud.Email == request.Email  && ld.DeletedFlag == false
+                                        select new {ID = (int) ld.Id}
+                                        ).ToList();
+                int userID = 0;
+                bool exist = false;
+                if(users.Count > 0 )
                 {
-                    List<UserDetail> emailsExistCheck = new List<UserDetail>();
-                    emailsExistCheck = db.UserDetails.ToList();
-                    int id = 0;
-                    bool exist = false;
-                    foreach (var users in emailsExistCheck)
+                    exist = true;
+                     userID = (int)users[0].ID;
+                }
+                if(exist) 
+                {  
+                    var ob = db.LoginDetails.Find(userID);
+                    if (ob != null && ob.Password == password)
                     {
-                        if (users.Email == request.Email)
+                        // if user is not active
+                        if (ob.IsActive == false)
                         {
-                            var checkFlag = db.LoginDetails.FirstOrDefault(x => x.Id == users.LoginId);
-                            if (checkFlag.DeletedFlag == false)
-                            {
-                                id = checkFlag.Id;
-                                exist = true;
-                                break;
-                            }
+                            ViewBag.Notification = ValidationMessages.notActive;
+                            return View();
                         }
-                    }
-                    if (exist)
-                    {
-                        string password = Helper.Encrypt(request.Password);
-                        var ob = db.LoginDetails.Find(id);
-                        if (ob != null && ob.Password == password)
+                        // if user is active
+                        else if (ob.IsActive == true)
                         {
-                            // if user is not active
-                            if(ob.IsActive == false)
+                            if (ob.RoleId == 1)
                             {
-                                ViewBag.Notification = ValidationMessages.notActive;
-                                return View();
+                                Session["Permission"] = "Access-granted";
                             }
-                            // if user is active
-                            else if (ob.IsActive == true)
-                            {
-                                if (ob.RoleId == 1)
-                                {
-                                    Session["Permission"] = "Access-granted";
-                                }
-                                UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == ob.Id);
-                                string FullName = user.FirstName + " " + user.LastName;
-                                Session["RoleID"] = ob.RoleId;
-                                Session["Id"] = user.LoginId;
-                                Session["UserName"] = FullName.ToString();
+                            UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == ob.Id);
+                            string FullName = user.FirstName + " " + user.LastName;
+                            Session["RoleID"] = ob.RoleId;
+                            Session["Id"] = user.LoginId;
+                            Session["UserName"] = FullName.ToString();
 
-                                var roleID = (int)Session["RoleID"];
-                                // if user is trying to sign-in
-                                if (roleID == 2)
-                                {
-                                    return RedirectToAction("UserDashboard", User);
-                                }
-                                // if admin is trying to sign-in
-                                else
-                                {
-                                    return RedirectToAction("Index", User);
-                                }
+                            var roleID = (int)Session["RoleID"];
+                            // if user is trying to sign-in
+                            if (roleID == 2)
+                            {
+                                return RedirectToAction("UserDashboard", User);
+                            }
+                            // if admin is trying to sign-in
+                            else
+                            {
+                                return RedirectToAction("Index", User);
                             }
                         }
                         else
                         {
-                            ViewBag.Notification = ValidationMessages.wrongCredentials;
+                            // you do not have 
+                            ViewBag.Notification = ValidationMessages.notActive;
                             return View();
                         }
                     }
                     else
                     {
-                        ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
+                        // wrong credentials
+                        ViewBag.Notification = ValidationMessages.wrongCredentials;
+                        return View();
                     }
-                    ViewBag.Notification = ValidationMessages.wentWrong;
-                    return View();
                 }
                 else
                 {
-                    ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
+                    ViewBag.Notification = ValidationMessages.userDoesnotExists;
+                    return View();
                 }
                 
             }

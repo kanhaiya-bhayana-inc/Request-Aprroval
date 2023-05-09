@@ -11,7 +11,7 @@ namespace RequestApproval.DTO
     {
         public UserDTO() { }
 
-        public UserDTO(int Id, string FirstName, string LastName, string Phone, string Address, int RoleId, string Email, bool IsActive, bool DeletedFlag, string UserType) {
+        public UserDTO(int Id, string FirstName, string LastName, string Phone, string Address, int RoleId, string Email, bool IsActive, string UserType) {
         
             this.Id = Id;
             this.FirstName = FirstName;
@@ -21,7 +21,6 @@ namespace RequestApproval.DTO
             this.RoleId = RoleId;
             this.Email = Email;
             this.IsActive = IsActive;
-            this.DeletedFlag = DeletedFlag;
             this.UserType = UserType;
         }
         public int Id { get; set; }
