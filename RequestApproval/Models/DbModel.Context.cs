@@ -15,10 +15,10 @@ namespace RequestApproval.Models
     using System.Data.Entity.Core.Objects;
     using System.Linq;
     
-    public partial class RequestApprovalEntities4 : DbContext
+    public partial class RequestApprovalEntities5 : DbContext
     {
-        public RequestApprovalEntities4()
-            : base("name=RequestApprovalEntities4")
+        public RequestApprovalEntities5()
+            : base("name=RequestApprovalEntities5")
         {
         }
     
@@ -58,6 +58,35 @@ namespace RequestApproval.Models
                 new ObjectParameter("password", typeof(string));
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("CreateAdminCredentials", firstNameParameter, lastNameParameter, phoneParameter, addressParameter, emailParameter, passwordParameter);
+        }
+    
+        public virtual int UpdateAdminCredentials(Nullable<int> adminID, string firstName, string lastName, string phone, string address, string password)
+        {
+            var adminIDParameter = adminID.HasValue ?
+                new ObjectParameter("adminID", adminID) :
+                new ObjectParameter("adminID", typeof(int));
+    
+            var firstNameParameter = firstName != null ?
+                new ObjectParameter("firstName", firstName) :
+                new ObjectParameter("firstName", typeof(string));
+    
+            var lastNameParameter = lastName != null ?
+                new ObjectParameter("lastName", lastName) :
+                new ObjectParameter("lastName", typeof(string));
+    
+            var phoneParameter = phone != null ?
+                new ObjectParameter("phone", phone) :
+                new ObjectParameter("phone", typeof(string));
+    
+            var addressParameter = address != null ?
+                new ObjectParameter("address", address) :
+                new ObjectParameter("address", typeof(string));
+    
+            var passwordParameter = password != null ?
+                new ObjectParameter("password", password) :
+                new ObjectParameter("password", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("UpdateAdminCredentials", adminIDParameter, firstNameParameter, lastNameParameter, phoneParameter, addressParameter, passwordParameter);
         }
     }
 }

@@ -61,7 +61,7 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
-  <EntityContainer Name="RequestApprovalEntities4" annotation:LazyLoadingEnabled="true">
+  <EntityContainer Name="RequestApprovalEntities5" annotation:LazyLoadingEnabled="true">
     <EntitySet Name="LoginDetails" EntityType="Self.LoginDetail" />
     <EntitySet Name="Roles" EntityType="Self.Role" />
     <EntitySet Name="UserDetails" EntityType="Self.UserDetail" />
@@ -79,6 +79,14 @@
       <Parameter Name="phone" Mode="In" Type="String" />
       <Parameter Name="address" Mode="In" Type="String" />
       <Parameter Name="email" Mode="In" Type="String" />
+      <Parameter Name="password" Mode="In" Type="String" />
+    </FunctionImport>
+    <FunctionImport Name="UpdateAdminCredentials">
+      <Parameter Name="adminID" Mode="In" Type="Int32" />
+      <Parameter Name="firstName" Mode="In" Type="String" />
+      <Parameter Name="lastName" Mode="In" Type="String" />
+      <Parameter Name="phone" Mode="In" Type="String" />
+      <Parameter Name="address" Mode="In" Type="String" />
       <Parameter Name="password" Mode="In" Type="String" />
     </FunctionImport>
   </EntityContainer>

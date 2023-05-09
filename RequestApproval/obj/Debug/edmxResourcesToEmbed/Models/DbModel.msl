@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-  <EntityContainerMapping StorageEntityContainer="RequestApprovalModelStoreContainer" CdmEntityContainer="RequestApprovalEntities4">
+  <EntityContainerMapping StorageEntityContainer="RequestApprovalModelStoreContainer" CdmEntityContainer="RequestApprovalEntities5">
     <EntitySetMapping Name="LoginDetails">
       <EntityTypeMapping TypeName="RequestApprovalModel.LoginDetail">
         <MappingFragment StoreEntitySet="LoginDetails">
@@ -34,5 +34,6 @@
       </EntityTypeMapping>
     </EntitySetMapping>
     <FunctionImportMapping FunctionImportName="CreateAdminCredentials" FunctionName="RequestApprovalModel.Store.CreateAdminCredentials" />
+    <FunctionImportMapping FunctionImportName="UpdateAdminCredentials" FunctionName="RequestApprovalModel.Store.UpdateAdminCredentials" />
   </EntityContainerMapping>
 </Mapping>

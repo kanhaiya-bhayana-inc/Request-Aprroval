@@ -11,7 +11,7 @@ namespace RequestApproval.Controllers
 {
     public class UserController : Controller
     {
-        RequestApprovalEntities4 db = new RequestApprovalEntities4();
+        RequestApprovalEntities5 db = new RequestApprovalEntities5();
 
         
         // GET: User
@@ -30,7 +30,7 @@ namespace RequestApproval.Controllers
                 /*userDetail = db.UserDetails.ToList();*/
                 foreach(LoginDetail x in loginDetails)
                 {
-                    if (x.DeletedFlag == false)
+                    if (x.DeletedFlag == false && x.RoleId == 2)
                     {
                         activeUsers.Add(x);
                     }
@@ -73,12 +73,76 @@ namespace RequestApproval.Controllers
             try
             {
 
+                var checkExistance = db.UserDetails.Any(x => x.Email == request.Email);
+                if (checkExistance)
+                {
+                    List<UserDetail> emailsExistCheck = new List<UserDetail>();
+                    emailsExistCheck = db.UserDetails.ToList();
+                    List<int> activeEmails = new List<int>();
+                    bool exist = false;
+                    foreach (var users in emailsExistCheck)
+                    {
+                        if(users.Email == request.Email)
+                        {
+                            var checkFlag = db.LoginDetails.FirstOrDefault(x => x.Id == users.LoginId);
+                            if(checkFlag.DeletedFlag == false)
+                            {
+                                exist = true; 
+                                break;
+                            }
+                        }
+                    }
+                    if (exist)
+                    {
+                        ViewBag.Notification = ValidationMessages.userExists;
+                        return View();
+                    }
+                    else
+                    {
+                        if (Session["Permission"] != null)
+                        {
+                            request.Password = "Test@1234";
+                        }
+                        var password = Helper.Encrypt(request.Password);
+                        UserDetail user = new UserDetail();
+                        LoginDetail loginDetail = new LoginDetail();
 
-                if (db.UserDetails.Any(x => x.Email == request.Email))
+
+                        loginDetail.Password = password;
+                        loginDetail.IsActive = false;
+                        loginDetail.RoleId = 2;
+                        loginDetail.DeletedFlag = false;
+
+
+                        db.LoginDetails.Add(loginDetail);
+                        db.SaveChanges();
+
+                        var UserId = loginDetail.Id;
+
+                        user.LoginId = UserId;
+                        user.Address = request.Address;
+                        user.FirstName = request.FirstName;
+                        user.LastName = request.LastName;
+                        user.Phone = request.Phone;
+                        user.Email = request.Email;
+
+                        db.UserDetails.Add(user);
+                        db.SaveChanges();
+
+                        return RedirectToAction("Index");
+
+                    }
+                }
+                /*else
+                {
+                    ViewBag.Notification = "Something went wrong";
+                    return View();
+                }*/
+                /*if (checkExistance != null && checkDelete != null && checkDelete.DeletedFlag == false )
                 {
                     ViewBag.Notification = ValidationMessages.userExists;
                     return View();
-                }
+                }*/
                 else
                 {
                     if (Session["Permission"] != null)
@@ -89,7 +153,7 @@ namespace RequestApproval.Controllers
                     UserDetail user = new UserDetail();
                     LoginDetail loginDetail = new LoginDetail();
 
-                    
+
                     loginDetail.Password = password;
                     loginDetail.IsActive = false;
                     loginDetail.RoleId = 2;
@@ -101,7 +165,7 @@ namespace RequestApproval.Controllers
 
                     var UserId = loginDetail.Id;
 
-                    user.LoginId= UserId;
+                    user.LoginId = UserId;
                     user.Address = request.Address;
                     user.FirstName = request.FirstName;
                     user.LastName = request.LastName;
@@ -115,7 +179,9 @@ namespace RequestApproval.Controllers
 
                 }
             }
-            catch { return View(); }
+            catch{
+                return View();  
+            }
 
         }
         
@@ -166,7 +232,8 @@ namespace RequestApproval.Controllers
             try
             {
                 var check = db.UserDetails.FirstOrDefault(x => x.Email == request.Email);
-                if (check != null)
+                var check1 = db.LoginDetails.FirstOrDefault(x => x.Id == check.LoginId);
+                if (check != null && check1.DeletedFlag == false)
                 {
 
                     string password = Helper.Encrypt(request.Password);
