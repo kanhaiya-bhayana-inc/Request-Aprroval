@@ -22,12 +22,10 @@ namespace RequestApproval.Controllers
 
 
                 List<UserDTO> users = new List<UserDTO>();
-                /*List<UserDetail> userDetail1 = new List<UserDetail>();*/
                 List<UserDetail> userDetail = new List<UserDetail>();
                 List<LoginDetail> loginDetails = new List<LoginDetail>();
                 List<LoginDetail> activeUsers = new List<LoginDetail>();
                 loginDetails = db.LoginDetails.ToList();
-                /*userDetail = db.UserDetails.ToList();*/
                 foreach(LoginDetail x in loginDetails)
                 {
                     if (x.DeletedFlag == false && x.RoleId == 2)
@@ -35,7 +33,6 @@ namespace RequestApproval.Controllers
                         activeUsers.Add(x);
                     }
                 }
-                /*credential = db.Credentials.ToList();*/
                 foreach (var x in activeUsers)
                 {
                     var obj = db.UserDetails.FirstOrDefault(c => c.LoginId == x.Id);
@@ -46,9 +43,7 @@ namespace RequestApproval.Controllers
                     user.LastName = obj.LastName;
                     user.Address = obj.Address;
                     user.Phone = obj.Phone;
-                    /*user.RoleId = (int)x.RoleId;*/
-                    /*                user.Password = obj.Password;
-                    */
+                    
                     user.Email = obj.Email;
                     user.IsActive = (bool)x.IsActive;
                     user.DeletedFlag = (bool)x.DeletedFlag;
@@ -133,16 +128,6 @@ namespace RequestApproval.Controllers
 
                     }
                 }
-                /*else
-                {
-                    ViewBag.Notification = "Something went wrong";
-                    return View();
-                }*/
-                /*if (checkExistance != null && checkDelete != null && checkDelete.DeletedFlag == false )
-                {
-                    ViewBag.Notification = ValidationMessages.userExists;
-                    return View();
-                }*/
                 else
                 {
                     if (Session["Permission"] != null)
@@ -294,9 +279,6 @@ namespace RequestApproval.Controllers
                             ViewBag.Notification = ValidationMessages.wrongCredentials;
                             return View();
                         }
-                        /*ViewBag.Notification = ValidationMessages.wentWrong;
-                        return View();*/
-                        
                     }
                     else
                     {
@@ -309,64 +291,7 @@ namespace RequestApproval.Controllers
                 {
                     ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
                 }
-                /*var check = db.UserDetails.FirstOrDefault(x => x.Email == request.Email);
-                var check1 = db.LoginDetails.FirstOrDefault(x => x.Id == check.LoginId);
-                if (check != null && check1.DeletedFlag == false)
-                {
-
-                    string password = Helper.Encrypt(request.Password);
-                   *//* if(check.Email == "david@dragan.com")
-                    {
-                        Session["RoleName"] = "Admin";
-                        password = password.Substring(0, 30);
-                    }*//*
-                    var checkLogin = db.UserDetails.FirstOrDefault(x => x.Email == request.Email); 
-                    var checkLogin2 = db.LoginDetails.FirstOrDefault(x => x.Password == password && x.Id == checkLogin.LoginId);
-                    if ((checkLogin != null && checkLogin2 != null) && (checkLogin.LoginId == checkLogin2.Id))
-                    {
-                        if (checkLogin2.IsActive == true)
-                        {
-
-
-
-                            if (checkLogin2.RoleId == 1)
-                            {
-                                Session["Permission"] = "Access-granted";
-                            }
-                            UserDetail user = db.UserDetails.FirstOrDefault(x => x.LoginId == checkLogin2.Id);
-                            string FullName = user.FirstName + " " + user.LastName;
-                            Session["RoleID"] = checkLogin2.RoleId;
-                            Session["Id"] = user.LoginId;
-                            Session["UserName"] = FullName.ToString();
-
-                            var roleID = (int)Session["RoleID"];
-                            if (roleID == 2)
-                            {
-                                return RedirectToAction("UserDashboard", User);
-                            }
-                            else
-                            {
-                                return RedirectToAction("Index", User);
-                            }
-                        }
-                        else
-                        {
-                            ViewBag.Notification = ValidationMessages.notActive;
-                            return View();
-                        }
-                    }
-
-                    else
-                    {
-                        ViewBag.Notification = ValidationMessages.wrongCredentials;
-                        return View();
-                    }
-
-                }
-                else
-                {
-                    ViewBag.Notification = ValidationMessages.userDoesnotExists; return View();
-                }*/
+                
             }
             catch { return View(); }
         }
