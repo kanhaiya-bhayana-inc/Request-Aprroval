@@ -132,6 +132,7 @@
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="DTO\LoginDTO.cs" />
     <Compile Include="DTO\UserDTO.cs" />
+    <Compile Include="Enums\RolesData.cs" />
     <Compile Include="Enums\ValidationMessages.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

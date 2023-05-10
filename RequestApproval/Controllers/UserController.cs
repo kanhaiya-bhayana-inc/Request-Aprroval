@@ -14,6 +14,9 @@ namespace RequestApproval.Controllers
     {
         RequestApprovalEntities5 db = new RequestApprovalEntities5();
 
+        private readonly int adminID = (int)RolesData.Admin;
+        private readonly int userID = (int)RolesData.User;
+
         // GET: User
         public ActionResult Index()
         {
@@ -26,7 +29,7 @@ namespace RequestApproval.Controllers
                                        from rd in db.Roles
                                        where ld.Id == ud.LoginId
                                        where rd.RoleId == ld.RoleId
-                                       && ld.RoleId == 2 && ld.DeletedFlag == false
+                                       && ld.RoleId == userID && ld.DeletedFlag == false
                                        select new
                                        {
                                            Id = (int)ld.Id,
@@ -63,7 +66,7 @@ namespace RequestApproval.Controllers
                         from rd in db.Roles
                         where ld.Id == ud.LoginId
                         where rd.RoleId == ld.RoleId
-                                   && ld.RoleId==2 && ld.DeletedFlag == false
+                                   && ld.RoleId==userID && ld.DeletedFlag == false
                                    select new 
                         {
                             Id = (int)ld.Id,
@@ -138,7 +141,7 @@ namespace RequestApproval.Controllers
 
                         loginDetail.Password = password;
                         loginDetail.IsActive = false;
-                        loginDetail.RoleId = 2;
+                        loginDetail.RoleId = userID;
                         loginDetail.DeletedFlag = false;
 
 
@@ -174,7 +177,7 @@ namespace RequestApproval.Controllers
 
                     loginDetail.Password = password;
                     loginDetail.IsActive = false;
-                    loginDetail.RoleId = 2;
+                    loginDetail.RoleId = userID;
                     loginDetail.DeletedFlag = false;
 
 
@@ -273,16 +276,16 @@ namespace RequestApproval.Controllers
                                         && ud.Email == request.Email  && ld.DeletedFlag == false
                                         select new {ID = (int) ld.Id}
                                         ).ToList();
-                int userID = 0;
+                int userID1 = 0;
                 bool exist = false;
                 if(users.Count > 0 )
                 {
                     exist = true;
-                     userID = (int)users[0].ID;
+                     userID1 = (int)users[0].ID;
                 }
                 if(exist) 
                 {  
-                    var ob = db.LoginDetails.Find(userID);
+                    var ob = db.LoginDetails.Find(userID1);
                     if (ob != null && ob.Password == password)
                     {
                         // if user is not active
@@ -294,7 +297,7 @@ namespace RequestApproval.Controllers
                         // if user is active
                         else if (ob.IsActive == true)
                         {
-                            if (ob.RoleId == 1)
+                            if (ob.RoleId == adminID)
                             {
                                 Session["Permission"] = "Access-granted";
                             }
@@ -306,7 +309,7 @@ namespace RequestApproval.Controllers
 
                             var roleID = (int)Session["RoleID"];
                             // if user is trying to sign-in
-                            if (roleID == 2)
+                            if (roleID == userID)
                             {
                                 return RedirectToAction("UserDashboard", User);
                             }
@@ -358,20 +361,45 @@ namespace RequestApproval.Controllers
             try
             {
 
-            UserDetail obj = db.UserDetails.FirstOrDefault(x =>x.LoginId ==id);
-            LoginDetail loginDetails = db.LoginDetails.FirstOrDefault(x => x.Id == id);
-            UserDTO user = new UserDTO();
-            user.FirstName = obj.FirstName;
-            user.LastName = obj.LastName;
-            user.Phone = obj.Phone;
-            user.Address = obj.Address;
-            user.Email = obj.Email;
-            user.Id = id;
-            user.IsActive = (bool)loginDetails.IsActive;
-            Role role = db.Roles.FirstOrDefault(x =>x.RoleId == loginDetails.RoleId);
-            user.UserType = role.RoleName;
-
-            return View(user);
+                List<UserDTO> userInfo = (from ud in db.UserDetails
+                                          from ld in db.LoginDetails
+                                          from rd in db.Roles
+                                          where ld.Id == ud.LoginId
+                                          where rd.RoleId == ld.RoleId
+                                          where ld.Id == id
+                                          select new
+                                          {
+                                              Id = (int)ld.Id,
+                                              FirstName = ud.FirstName,
+                                              LastName = ud.LastName,
+                                              Phone = ud.Phone,
+                                              Address = ud.Address,
+                                              RoleId = (int)ld.RoleId,
+                                              Email = ud.Email,
+                                              IsActive = (bool)ld.IsActive,
+                                              UserType = rd.RoleName
+                                          }
+                                  ).AsEnumerable().Select(x => new UserDTO(
+                                      x.Id,
+                                 x.FirstName,
+                                 x.LastName,
+                                 x.Phone,
+                                 x.Address,
+                                 x.RoleId,
+                                 x.Email,
+                                 x.IsActive,
+                                 x.UserType
+                                      )).ToList();
+                
+            if (userInfo.Count > 0 )
+                {
+                    return View(userInfo[0]);
+                }
+                else
+                {
+                    ViewBag.Notification = ValidationMessages.wentWrong;
+                    return View();
+                }
             }
             catch { return View(); }
         }
