@@ -19,6 +19,8 @@ namespace RequestApproval
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
             AdminCredentials.init();
+            
+
         }
     }
 }

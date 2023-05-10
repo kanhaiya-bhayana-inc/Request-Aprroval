@@ -28,6 +28,7 @@ namespace RequestApproval.App_Start
                     int id = (int)userDetail.LoginId;
                     db.UpdateAdminCredentials(id, "Admin", "", "6987012354", "South Delhi", adminPassword);
                 }
+
             }
             catch (Exception ex)
             {

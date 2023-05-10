@@ -18,6 +18,7 @@ namespace RequestApproval.Controllers
         private readonly int userID = (int)RolesData.User;
 
         // GET: User
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public ActionResult Index()
         {
             try
@@ -213,6 +214,7 @@ namespace RequestApproval.Controllers
         }
 
         [HttpGet]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public ActionResult UserDashboard() 
         {
             try
@@ -250,9 +252,16 @@ namespace RequestApproval.Controllers
                              x.UserType
                                   )).ToList();
 
-                  
+                 if(userInfo.Count > 0)
+                    {
+                        return View(userInfo[0]);
+                    }
+                    else
+                    {
+                        ViewBag.Notification = ValidationMessages.wentWrong;
+                        return View();
+                    }
 
-                return View(userInfo);
                 }
                 else
                 {
@@ -265,6 +274,7 @@ namespace RequestApproval.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+
         public ActionResult Login(LoginDTO request)
         {
             try
@@ -343,6 +353,7 @@ namespace RequestApproval.Controllers
             catch { return View(); }
         }
 
+        /*[OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]*/
         public ActionResult Logout()
         {
             try
