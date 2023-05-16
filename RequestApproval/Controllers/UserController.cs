@@ -18,44 +18,47 @@ namespace RequestApproval.Controllers
         private readonly int userID = (int)RolesData.User;
 
         // GET: User
-        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
+        /*[OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]*/
+
         public ActionResult Index()
         {
             try
             {
+                if (Session["Id"] != null)
+                {
+                    List<UserDTO> users = (from ud in db.UserDetails
+                                           from ld in db.LoginDetails
+                                           from rd in db.Roles
+                                           where ld.Id == ud.LoginId
+                                           where rd.RoleId == ld.RoleId
+                                           && ld.RoleId == userID && ld.DeletedFlag == false
+                                           select new
+                                           {
+                                               Id = (int)ld.Id,
+                                               FirstName = ud.FirstName,
+                                               LastName = ud.LastName,
+                                               Phone = ud.Phone,
+                                               Address = ud.Address,
+                                               RoleId = (int)ld.RoleId,
+                                               Email = ud.Email,
+                                               IsActive = (bool)ld.IsActive,
+                                               UserType = rd.RoleName
+                                           }
+                                   ).AsEnumerable().Select(x => new UserDTO(
+                                       x.Id,
+                                  x.FirstName,
+                                  x.LastName,
+                                  x.Phone,
+                                  x.Address,
+                                  x.RoleId,
+                                  x.Email,
+                                  x.IsActive,
+                                  x.UserType
+                                       )).ToList();
 
-
-                List<UserDTO> users = (from ud in db.UserDetails
-                                       from ld in db.LoginDetails
-                                       from rd in db.Roles
-                                       where ld.Id == ud.LoginId
-                                       where rd.RoleId == ld.RoleId
-                                       && ld.RoleId == userID && ld.DeletedFlag == false
-                                       select new
-                                       {
-                                           Id = (int)ld.Id,
-                                           FirstName = ud.FirstName,
-                                           LastName = ud.LastName,
-                                           Phone = ud.Phone,
-                                           Address = ud.Address,
-                                           RoleId = (int)ld.RoleId,
-                                           Email = ud.Email,
-                                           IsActive = (bool)ld.IsActive,
-                                           UserType = rd.RoleName
-                                       }
-                               ).AsEnumerable().Select(x => new UserDTO(
-                                   x.Id,
-                              x.FirstName,
-                              x.LastName,
-                              x.Phone,
-                              x.Address,
-                              x.RoleId,
-                              x.Email,
-                              x.IsActive,
-                              x.UserType
-                                   )).ToList();
-
-                return View(users);
+                    return View(users);
+                }
+                return RedirectToAction("Login");
             }
             catch { return View(); }
         }
@@ -63,23 +66,23 @@ namespace RequestApproval.Controllers
         public ActionResult Display()
         {
             List<UserDTO> users = (from ud in db.UserDetails
-                        from ld in db.LoginDetails
-                        from rd in db.Roles
-                        where ld.Id == ud.LoginId
-                        where rd.RoleId == ld.RoleId
-                                   && ld.RoleId==userID && ld.DeletedFlag == false
-                                   select new 
-                        {
-                            Id = (int)ld.Id,
-                            FirstName = ud.FirstName,
-                            LastName = ud.LastName,
-                            Phone = ud.Phone,
-                            Address = ud.Address,
-                            RoleId = (int)ld.RoleId,
-                            Email = ud.Email,
-                            IsActive = (bool)ld.IsActive,
-                            UserType = rd.RoleName
-                        }
+                                   from ld in db.LoginDetails
+                                   from rd in db.Roles
+                                   where ld.Id == ud.LoginId
+                                   where rd.RoleId == ld.RoleId
+                                              && ld.RoleId == userID && ld.DeletedFlag == false
+                                   select new
+                                   {
+                                       Id = (int)ld.Id,
+                                       FirstName = ud.FirstName,
+                                       LastName = ud.LastName,
+                                       Phone = ud.Phone,
+                                       Address = ud.Address,
+                                       RoleId = (int)ld.RoleId,
+                                       Email = ud.Email,
+                                       IsActive = (bool)ld.IsActive,
+                                       UserType = rd.RoleName
+                                   }
                               ).AsEnumerable().Select(x => new UserDTO(
                                   x.Id,
                              x.FirstName,
@@ -91,12 +94,59 @@ namespace RequestApproval.Controllers
                              x.IsActive,
                              x.UserType
                                   )).ToList();
-          
-            return View(users);
+
+            var res = db.UserDetails.Join(db.LoginDetails,
+                usr => usr.LoginId,
+                lgd => lgd.Id,
+                (usr, lgd) => new
+                {
+                    Id = (int)lgd.Id,
+                    FirstName = usr.FirstName,
+                    LastName = usr.LastName,
+                    Phone = usr.Phone,
+                    Address = usr.Address,
+                    RoleId = (int)lgd.RoleId,
+                    Email = usr.Email,
+                    //IsActive = (bool)lgd.IsActive,
+                    DeletedFlag = (bool)lgd.DeletedFlag
+                }
+                )
+                .Join(
+                db.Roles,
+                logidData => logidData.RoleId,
+                rdata => rdata.RoleId,
+                (logidData, rdata) => new
+                {
+                    Id = (int)logidData.Id,
+                    FirstName = logidData.FirstName,
+                    LastName = logidData.LastName,
+                    Phone = logidData.Phone,
+                    Address = logidData.Address,
+                    RoleId = (int)logidData.RoleId,
+                    Email = logidData.Email,
+                    //IsActive = (bool)logidData.IsActive,
+                    DeletedFlag = (bool)logidData.DeletedFlag,
+                    UserType = rdata.RoleName
+                }
+                ).Where(x => x.RoleId == userID && x.DeletedFlag == false).
+                AsEnumerable().Select(x => new UserDTO(
+                                  x.Id,
+                             x.FirstName,
+                             x.LastName,
+                             x.Phone,
+                             x.Address,
+                             x.RoleId,
+                             x.Email,
+                             //x.IsActive,
+                             x.UserType
+                                  )).ToList();
+            return View(res);
         }
 
         [HttpGet]
-        public ActionResult SignUp() {
+        [AllowAnonymous]
+        public ActionResult SignUp()
+        {
             return View();
         }
 
@@ -114,12 +164,12 @@ namespace RequestApproval.Controllers
                     bool exist = false;
                     foreach (var users in emailsExistCheck)
                     {
-                        if(users.Email == request.Email)
+                        if (users.Email == request.Email)
                         {
                             var checkFlag = db.LoginDetails.FirstOrDefault(x => x.Id == users.LoginId);
-                            if(checkFlag.DeletedFlag == false)
+                            if (checkFlag.DeletedFlag == false)
                             {
-                                exist = true; 
+                                exist = true;
                                 break;
                             }
                         }
@@ -201,12 +251,13 @@ namespace RequestApproval.Controllers
 
                 }
             }
-            catch{
-                return View();  
+            catch
+            {
+                return View();
             }
 
         }
-        
+
         [HttpGet]
         public ActionResult Login()
         {
@@ -214,32 +265,33 @@ namespace RequestApproval.Controllers
         }
 
         [HttpGet]
-        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
-        public ActionResult UserDashboard() 
+        /*[OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]*/
+        [Authorize]
+        public ActionResult UserDashboard()
         {
             try
             {
                 if (Session["Id"] != null)
                 {
-                    var id =(int) Session["Id"];
+                    var id = (int)Session["Id"];
                     List<UserDTO> userInfo = (from ud in db.UserDetails
-                                           from ld in db.LoginDetails
-                                           from rd in db.Roles
-                                           where ld.Id == ud.LoginId
-                                           where rd.RoleId == ld.RoleId
-                                                      where ld.Id == id
-                                           select new
-                                           {
-                                               Id = (int)ld.Id,
-                                               FirstName = ud.FirstName,
-                                               LastName = ud.LastName,
-                                               Phone = ud.Phone,
-                                               Address = ud.Address,
-                                               RoleId = (int)ld.RoleId,
-                                               Email = ud.Email,
-                                               IsActive = (bool)ld.IsActive,
-                                               UserType = rd.RoleName
-                                           }
+                                              from ld in db.LoginDetails
+                                              from rd in db.Roles
+                                              where ld.Id == ud.LoginId
+                                              where rd.RoleId == ld.RoleId
+                                              where ld.Id == id
+                                              select new
+                                              {
+                                                  Id = (int)ld.Id,
+                                                  FirstName = ud.FirstName,
+                                                  LastName = ud.LastName,
+                                                  Phone = ud.Phone,
+                                                  Address = ud.Address,
+                                                  RoleId = (int)ld.RoleId,
+                                                  Email = ud.Email,
+                                                  IsActive = (bool)ld.IsActive,
+                                                  UserType = rd.RoleName
+                                              }
                               ).AsEnumerable().Select(x => new UserDTO(
                                   x.Id,
                              x.FirstName,
@@ -252,7 +304,7 @@ namespace RequestApproval.Controllers
                              x.UserType
                                   )).ToList();
 
-                 if(userInfo.Count > 0)
+                    if (userInfo.Count > 0)
                     {
                         return View(userInfo[0]);
                     }
@@ -274,27 +326,26 @@ namespace RequestApproval.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
-        public ActionResult Login(LoginDTO request)
+        public ActionResult Login(LoginDTO request, EventArgs e)
         {
             try
             {
                 var password = Helper.Encrypt(request.Password);
                 var users = (from ud in db.UserDetails
-                                       from ld in db.LoginDetails
-                                       where ld.Id == ud.LoginId
-                                        && ud.Email == request.Email  && ld.DeletedFlag == false
-                                        select new {ID = (int) ld.Id}
+                             from ld in db.LoginDetails
+                             where ld.Id == ud.LoginId
+                              && ud.Email == request.Email && ld.DeletedFlag == false
+                             select new { ID = (int)ld.Id }
                                         ).ToList();
                 int userID1 = 0;
                 bool exist = false;
-                if(users.Count > 0 )
+                if (users.Count > 0)
                 {
                     exist = true;
-                     userID1 = (int)users[0].ID;
+                    userID1 = (int)users[0].ID;
                 }
-                if(exist) 
-                {  
+                if (exist)
+                {
                     var ob = db.LoginDetails.Find(userID1);
                     if (ob != null && ob.Password == password)
                     {
@@ -318,14 +369,17 @@ namespace RequestApproval.Controllers
                             Session["UserName"] = FullName.ToString();
 
                             var roleID = (int)Session["RoleID"];
+
                             // if user is trying to sign-in
                             if (roleID == userID)
                             {
+
                                 return RedirectToAction("UserDashboard", User);
                             }
                             // if admin is trying to sign-in
                             else
                             {
+
                                 return RedirectToAction("Index", User);
                             }
                         }
@@ -348,7 +402,7 @@ namespace RequestApproval.Controllers
                     ViewBag.Notification = ValidationMessages.userDoesnotExists;
                     return View();
                 }
-                
+
             }
             catch { return View(); }
         }
@@ -359,14 +413,16 @@ namespace RequestApproval.Controllers
             try
             {
 
-            Session.Clear();
-            Session.Abandon();
-            return RedirectToAction("Login");
+                Session.Clear();
+                Session.RemoveAll();
+                Session.Abandon();
+                return RedirectToAction("Login");
             }
             catch { return View(); }
         }
-        
+
         [HttpGet]
+        //[Authorize]
         public ActionResult Edit(int id)
         {
             try
@@ -401,8 +457,8 @@ namespace RequestApproval.Controllers
                                  x.IsActive,
                                  x.UserType
                                       )).ToList();
-                
-            if (userInfo.Count > 0 )
+
+                if (userInfo.Count > 0)
                 {
                     return View(userInfo[0]);
                 }
@@ -416,12 +472,13 @@ namespace RequestApproval.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(UserDTO user,int id)
+        //[Authorize]
+        public ActionResult Edit(UserDTO user, int id)
         {
             try
             {
-                LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x =>x.Id == id);
-                UserDetail userDetail = db.UserDetails.FirstOrDefault(x =>x.LoginId == loginDetail.Id);
+                LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x => x.Id == id);
+                UserDetail userDetail = db.UserDetails.FirstOrDefault(x => x.LoginId == loginDetail.Id);
 
                 userDetail.FirstName = user.FirstName;
                 userDetail.LastName = user.LastName;
@@ -439,13 +496,13 @@ namespace RequestApproval.Controllers
                 return View();
             }
         }
-        
+
         [HttpGet]
         public ActionResult Delete(int id)
         {
             try
             {
-                LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x =>x.Id==id);
+                LoginDetail loginDetail = db.LoginDetails.FirstOrDefault(x => x.Id == id);
                 loginDetail.IsActive = false;
                 loginDetail.DeletedFlag = true;
                 db.SaveChanges();

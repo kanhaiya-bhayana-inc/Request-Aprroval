@@ -23,6 +23,18 @@ namespace RequestApproval.DTO
             this.IsActive = IsActive;
             this.UserType = UserType;
         }
+        public UserDTO(int Id, string FirstName, string LastName, string Phone, string Address, int RoleId, string Email, string UserType)
+        {
+
+            this.Id = Id;
+            this.FirstName = FirstName;
+            this.LastName = LastName;
+            this.Phone = Phone;
+            this.Address = Address;
+            this.RoleId = RoleId;
+            this.Email = Email;
+            this.UserType = UserType;
+        }
         public int Id { get; set; }
 
         [Required(ErrorMessage = "This field is required!")]
