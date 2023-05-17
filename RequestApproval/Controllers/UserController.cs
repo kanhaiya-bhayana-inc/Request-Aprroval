@@ -25,8 +25,8 @@ namespace RequestApproval.Controllers
         {
             try
             {
-                if (Session["Id"] != null)
-                {
+                //if (Session["Id"] != null)
+               // {
                     List<UserDTO> users = (from ud in db.UserDetails
                                            from ld in db.LoginDetails
                                            from rd in db.Roles
@@ -58,8 +58,8 @@ namespace RequestApproval.Controllers
                                        )).ToList();
 
                     return View(users);
-                }
-                return RedirectToAction("Login");
+                //}
+                //return RedirectToAction("Login");
             }
             catch { return View(); }
         }
@@ -342,7 +342,6 @@ namespace RequestApproval.Controllers
 
         [HttpGet]
         /*[OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]*/
-        [Authorize]
         public ActionResult UserDashboard()
         {
             try
