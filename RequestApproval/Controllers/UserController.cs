@@ -16,6 +16,7 @@ namespace RequestApproval.Controllers
 
         private readonly int adminID = (int)RolesData.Admin;
         private readonly int userID = (int)RolesData.User;
+        private readonly string userRoleName = Enum.GetName(typeof(RolesData),2);
 
         // GET: User
         /*[OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]*/
@@ -65,7 +66,8 @@ namespace RequestApproval.Controllers
 
         public ActionResult Display()
         {
-            List<UserDTO> users = (from ud in db.UserDetails
+            // LINQ Inner Join
+            /*List<UserDTO> users = (from ud in db.UserDetails
                                    from ld in db.LoginDetails
                                    from rd in db.Roles
                                    where ld.Id == ud.LoginId
@@ -94,8 +96,79 @@ namespace RequestApproval.Controllers
                              x.IsActive,
                              x.UserType
                                   )).ToList();
+*/
 
-            var res = db.UserDetails.Join(db.LoginDetails,
+            // LINQ LINQ login Usrtbl  Role - left join
+            List<UserDTO> query = (from ld in db.LoginDetails
+                                   join ud in db.UserDetails on ld.Id equals ud.LoginId into ab
+                                   join rd in db.Roles on ld.RoleId equals rd.RoleId into bc
+                                   from x in ab.DefaultIfEmpty()
+                                   from y in bc.DefaultIfEmpty()
+                                   select new
+                                   {
+                                       Id = (int)ld.Id,
+                                       FirstName = (x.FirstName == null ? "NA" : x.FirstName),
+                                       LastName = (x.LastName == null ? "NA" : x.LastName),
+                                       Phone = (x.Phone == null ? "NA" : x.Phone),
+                                       Address = (x.Address == null ? "NA" : x.Address),
+                                       Email = (x.Email == null ? "NA" : x.Email),
+                                       IsActive = (bool)ld.IsActive,
+                                       RoleId = (int)ld.RoleId,
+                                       UserType = y.RoleName
+
+                                   }).AsEnumerable()
+                        .Select(it => new UserDTO(
+                            it.Id,
+                            it.FirstName,
+                            it.LastName,
+                            it.Phone,
+                            it.Address,
+                            it.RoleId,
+                            it.Email,
+                            it.IsActive,
+                            it.UserType
+
+                            )).ToList();
+
+
+
+
+            // LINQ login Usrtbl  Role - Right join
+            List<UserDTO> response = (from ud in db.UserDetails
+                            join ld in db.LoginDetails on ud.LoginId equals ld.Id into q1
+                            from x in q1.DefaultIfEmpty()
+                            where x.RoleId == 2 || x.RoleId == null && x.DeletedFlag == false || x.DeletedFlag == null
+                            select new
+                            {
+                                Id = (int?)ud.LoginId ?? 0,
+                                FirstName = ud.FirstName ?? "NA",
+                                LastName = ud.LastName ?? "NA",
+                                Address = ud.Address ?? "NA",
+                                Phone = ud.Phone ?? "NA",
+                                Email = ud.Email ?? "NA",
+                                RoleId = (x.RoleId) ?? 0,
+                                IsActive = x.IsActive == null ? false : (bool)x.IsActive,
+                                RoleName = x.RoleId == 2 ? userRoleName : "NA"
+                            }
+                            ).AsEnumerable()
+                            .Select( it => new UserDTO(
+                                it.Id,
+                                it.FirstName,
+                                it.LastName,
+                                it.Address,
+                                it.Phone,
+                                (int)it.RoleId, 
+                                it.Email,
+                                it.IsActive,
+                                it.RoleName
+
+                                )).ToList() ;
+            
+
+
+            // inner join Lambda Expression
+
+           /* var res = db.UserDetails.Join(db.LoginDetails,
                 usr => usr.LoginId,
                 lgd => lgd.Id,
                 (usr, lgd) => new
@@ -128,8 +201,7 @@ namespace RequestApproval.Controllers
                     DeletedFlag = (bool)logidData.DeletedFlag,
                     UserType = rdata.RoleName
                 }
-                ).Where(x => x.RoleId == userID && x.DeletedFlag == false).
-                AsEnumerable().Select(x => new UserDTO(
+                ).Where(x => x.RoleId == userID && x.DeletedFlag == false).Select(x => new UserDTO(
                                   x.Id,
                              x.FirstName,
                              x.LastName,
@@ -140,7 +212,11 @@ namespace RequestApproval.Controllers
                              //x.IsActive,
                              x.UserType
                                   )).ToList();
-            return View(res);
+           */
+
+            
+            var list = query.Union(response);
+            return View(list);
         }
 
         [HttpGet]

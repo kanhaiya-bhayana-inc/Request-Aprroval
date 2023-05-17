@@ -23,6 +23,14 @@ namespace RequestApproval.DTO
             this.IsActive = IsActive;
             this.UserType = UserType;
         }
+        public UserDTO(int Id, int RoleId, bool IsActive, string UserType)
+        {
+
+            this.Id = Id;
+            this.RoleId = RoleId;
+            this.IsActive = IsActive;
+            this.UserType = UserType;
+        }
         public UserDTO(int Id, string FirstName, string LastName, string Phone, string Address, int RoleId, string Email, string UserType)
         {
 
