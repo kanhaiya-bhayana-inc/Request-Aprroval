@@ -163,59 +163,104 @@ namespace RequestApproval.Controllers
                                 it.RoleName
 
                                 )).ToList() ;
-            
+
 
 
             // inner join Lambda Expression
 
-           /* var res = db.UserDetails.Join(db.LoginDetails,
+            /* var res = db.UserDetails.Join(db.LoginDetails,
+                 usr => usr.LoginId,
+                 lgd => lgd.Id,
+                 (usr, lgd) => new
+                 {
+                     Id = (int)lgd.Id,
+                     FirstName = usr.FirstName,
+                     LastName = usr.LastName,
+                     Phone = usr.Phone,
+                     Address = usr.Address,
+                     RoleId = (int)lgd.RoleId,
+                     Email = usr.Email,
+                     //IsActive = (bool)lgd.IsActive,
+                     DeletedFlag = (bool)lgd.DeletedFlag
+                 }
+                 )
+                 .Join(
+                 db.Roles,
+                 logidData => logidData.RoleId,
+                 rdata => rdata.RoleId,
+                 (logidData, rdata) => new
+                 {
+                     Id = (int)logidData.Id,
+                     FirstName = logidData.FirstName,
+                     LastName = logidData.LastName,
+                     Phone = logidData.Phone,
+                     Address = logidData.Address,
+                     RoleId = (int)logidData.RoleId,
+                     Email = logidData.Email,
+                     //IsActive = (bool)logidData.IsActive,
+                     DeletedFlag = (bool)logidData.DeletedFlag,
+                     UserType = rdata.RoleName
+                 }
+                 ).Where(x => x.RoleId == userID && x.DeletedFlag == false).Select(x => new UserDTO(
+                                   x.Id,
+                              x.FirstName,
+                              x.LastName,
+                              x.Phone,
+                              x.Address,
+                              x.RoleId,
+                              x.Email,
+                              //x.IsActive,
+                              x.UserType
+                                   )).ToList();
+            */
+            // Left join Lambda Expression
+
+            var leftJoinOutput = db.UserDetails.GroupJoin(db.LoginDetails,
                 usr => usr.LoginId,
                 lgd => lgd.Id,
-                (usr, lgd) => new
+                (usr, loginGrp) => new
                 {
-                    Id = (int)lgd.Id,
                     FirstName = usr.FirstName,
                     LastName = usr.LastName,
-                    Phone = usr.Phone,
                     Address = usr.Address,
-                    RoleId = (int)lgd.RoleId,
+                    Phone = usr.Phone,
                     Email = usr.Email,
-                    //IsActive = (bool)lgd.IsActive,
-                    DeletedFlag = (bool)lgd.DeletedFlag
-                }
-                )
-                .Join(
-                db.Roles,
-                logidData => logidData.RoleId,
-                rdata => rdata.RoleId,
-                (logidData, rdata) => new
-                {
-                    Id = (int)logidData.Id,
-                    FirstName = logidData.FirstName,
-                    LastName = logidData.LastName,
-                    Phone = logidData.Phone,
-                    Address = logidData.Address,
-                    RoleId = (int)logidData.RoleId,
-                    Email = logidData.Email,
-                    //IsActive = (bool)logidData.IsActive,
-                    DeletedFlag = (bool)logidData.DeletedFlag,
-                    UserType = rdata.RoleName
-                }
-                ).Where(x => x.RoleId == userID && x.DeletedFlag == false).Select(x => new UserDTO(
-                                  x.Id,
-                             x.FirstName,
-                             x.LastName,
-                             x.Phone,
-                             x.Address,
-                             x.RoleId,
-                             x.Email,
-                             //x.IsActive,
-                             x.UserType
-                                  )).ToList();
-           */
+                    Password = (loginGrp.FirstOrDefault(x => x.Id == usr.LoginId) == null ? "NA" : loginGrp.FirstOrDefault(x => x.Id == usr.LoginId).Password),
+                    RoleID = (loginGrp.FirstOrDefault(x => x.Id == usr.LoginId)==null?0: loginGrp.FirstOrDefault(x => x.Id == usr.LoginId).RoleId),
+                    IsActive = (loginGrp.FirstOrDefault(x => x.Id == usr.LoginId) == null ? false : loginGrp.FirstOrDefault(x => x.Id == usr.LoginId).IsActive),
 
-            
+                }
+                ).ToList();
+
+            // Left join Lambda Expression
+
+            var rightJoinOutput = db.LoginDetails.GroupJoin(db.UserDetails,
+                lgd => lgd.Id,
+                usr => usr.LoginId,
+                (lgd, userGrp) => new
+                {
+                    FirstName = (userGrp.FirstOrDefault(x =>x.LoginId == lgd.Id) == null?"NA": userGrp.FirstOrDefault(x => x.LoginId == lgd.Id).FirstName),
+                    LastName = (userGrp.FirstOrDefault(x => x.LoginId == lgd.Id) == null ? "NA" : userGrp.FirstOrDefault(x => x.LoginId == lgd.Id).LastName),
+                    Address = (userGrp.FirstOrDefault(x => x.LoginId == lgd.Id) == null ? "NA" : userGrp.FirstOrDefault(x => x.LoginId == lgd.Id).Address),
+                    Phone = (userGrp.FirstOrDefault(x => x.LoginId == lgd.Id) == null ? "NA" : userGrp.FirstOrDefault(x => x.LoginId == lgd.Id).Phone),
+                    Email = (userGrp.FirstOrDefault(x => x.LoginId == lgd.Id) == null ? "NA" : userGrp.FirstOrDefault(x => x.LoginId == lgd.Id).Email),
+                    Password =  lgd.Password,
+                    RoleID = lgd.RoleId,
+                    IsActive = lgd.IsActive,
+                }
+                ).ToList();
+
+            var fullOuterJoin = leftJoinOutput.Union(rightJoinOutput);
+
+
             var list = query.Union(response);
+            var activeCount = list.Count(x => x.IsActive == true);
+
+            var groupByLastName = from d in list
+                                  group d by d.LastName into newGroup
+                                  orderby newGroup.Key
+                                  select newGroup;
+
             return View(list);
         }
 
